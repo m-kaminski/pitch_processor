@@ -19,7 +19,6 @@ namespace pitchstream
             std::stringstream ss;
 
             pitchstream::event_accumulator::v_summary vs;
-            std::cout << "HW\n";
             format_summary(ss, vs);
             EXPECT_TRUE(ss.str().empty());
         }
@@ -33,13 +32,22 @@ namespace pitchstream
             vs.push_back(v_summary_item("F", 1345135135));
             vs.push_back(v_summary_item("AAAAA", 4));
             vs.push_back(v_summary_item("N", 434));
-            std::cout << "HW\n";
             format_summary(ss, vs);
             EXPECT_EQ(ss.str(), std::string(
                                     "AAPL        90809\n"
                                     "F      1345135135\n"
                                     "AAAAA           4\n"
                                     "N             434\n"));
+        }
+
+        TEST_F(summary_fotmatter_test, single_line)
+        {
+            std::stringstream ss;
+
+            pitchstream::event_accumulator::v_summary vs;
+            vs.push_back(v_summary_item("N", 434));
+            format_summary(ss, vs);
+            EXPECT_EQ(ss.str(), std::string("N  434\n"));
         }
 
         TEST_F(summary_fotmatter_test, basic_formatting_alignment_depends_on_width)
@@ -51,7 +59,6 @@ namespace pitchstream
             vs.push_back(v_summary_item("F", 45135135));
             vs.push_back(v_summary_item("AAAAA", 4));
             vs.push_back(v_summary_item("N", 434));
-            std::cout << "HW\n";
             format_summary(ss, vs);
             EXPECT_EQ(ss.str(), std::string(
                                     "AAPL      90809\n"
@@ -75,7 +82,6 @@ namespace pitchstream
             vs.push_back(v_summary_item("F", 6679883));
             vs.push_back(v_summary_item("EDS", 6673983));
             vs.push_back(v_summary_item("QID", 6526201));
-            std::cout << "HW\n";
             format_summary(ss, vs);
             EXPECT_EQ(ss.str(), std::string(
                                     "SPY   24486275\n"
