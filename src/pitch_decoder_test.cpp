@@ -23,11 +23,23 @@ namespace pitchstream
 
         TEST_F(pitch_decode_test, add_order_correct_type)
         {
+            // convenient B36 conversion tool http://extraconversion.com/base-number/base-36
             std::string ADD_ORDER("S28800011AAK27GA0000DTS000100SH    0000619200Y");
             std::unique_ptr<pitch_message> p_m = 
                         pitch_decoder::decode(ADD_ORDER.begin(), ADD_ORDER.end());
             EXPECT_NE(p_m.get(), nullptr);
             EXPECT_EQ(p_m->get_type(), message_type::add_order);
+            EXPECT_EQ(p_m->get_order_id(), 1389564350501069297LL);
+            EXPECT_EQ(p_m->get_stock_symbol(), "SH");
+            EXPECT_EQ(p_m->get_shares_count(), 100);
+        }
+
+        TEST_F(pitch_decode_test, add_order_short_line_fails)
+        {
+            std::string ADD_ORDER("S28800011AAK27GA0000DTS000100SH    0000619200");
+            std::unique_ptr<pitch_message> p_m = 
+                        pitch_decoder::decode(ADD_ORDER.begin(), ADD_ORDER.end());
+            EXPECT_EQ(p_m.get(), nullptr);
         }
 
         TEST_F(pitch_decode_test, order_execute_correct_type)
