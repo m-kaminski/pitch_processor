@@ -45,6 +45,9 @@ namespace pitchstream
         }
 
     private:
+        static const int COMMON_ORDER_ID_OFFSET = 10;
+        static const int COMMON_ORDER_ID_LENGTH = 12;
+
         /**
          * decode and validate Add Order message
          */
@@ -52,8 +55,6 @@ namespace pitchstream
         static p_message decode_add(const T &begin, const T &end)
         {
             const int ORDER_ADD_LENGTH = 46;
-            const int ORDER_ADD_ORDER_ID_OFFSET = 10;
-            const int ORDER_ADD_ORDER_ID_LENGTH = 12;
             const int ORDER_ADD_SHARES_OFFSET = 23;
             const int ORDER_ADD_SHARES_LENGTH = 6;
             const int ORDER_ADD_SYMBOL_OFFSET = 29;
@@ -65,13 +66,12 @@ namespace pitchstream
             }
             p_message out(new pitch_message(message_type::add_order));
 
-            out->order_id = base36(begin + ORDER_ADD_ORDER_ID_OFFSET,
-                                         begin + ORDER_ADD_ORDER_ID_OFFSET + ORDER_ADD_ORDER_ID_LENGTH);
+            out->order_id = base36(begin + COMMON_ORDER_ID_OFFSET,
+                                   begin + COMMON_ORDER_ID_OFFSET + COMMON_ORDER_ID_LENGTH);
 
             out->shares_count = std::stoi(std::string(
                 begin + ORDER_ADD_SHARES_OFFSET,
                 begin + ORDER_ADD_SHARES_OFFSET + ORDER_ADD_SHARES_LENGTH));
-
 
             auto symbol_b = begin + ORDER_ADD_SYMBOL_OFFSET;
             auto symbol_e = symbol_b + ORDER_ADD_SYMBOL_LENGTH;
@@ -81,7 +81,6 @@ namespace pitchstream
 
             return out;
         }
-
 
         /**
          * decode and validate Order Executed message
@@ -100,7 +99,23 @@ namespace pitchstream
         template <typename T>
         static p_message decode_cancel(const T &begin, const T &end)
         {
+            const int ORDER_CANCEL_LENGTH = 28;
+            const int ORDER_CANCEL_SHARES_OFFSET = 23;
+            const int ORDER_CANCEL_SHARES_LENGTH = 6;
+
+            if (end - begin < ORDER_CANCEL_LENGTH)
+            {
+                return p_message();
+            }
+
             p_message out(new pitch_message(message_type::order_cancel));
+
+            out->order_id = base36(begin + COMMON_ORDER_ID_OFFSET,
+                                   begin + COMMON_ORDER_ID_OFFSET + COMMON_ORDER_ID_LENGTH);
+
+            out->shares_count = std::stoi(std::string(
+                begin + ORDER_CANCEL_SHARES_OFFSET,
+                begin + ORDER_CANCEL_SHARES_OFFSET + ORDER_CANCEL_SHARES_LENGTH));
 
             return out;
         }
