@@ -5,9 +5,11 @@
 namespace pitchstream {
 std::uint64_t base36_max = 4738381338321616895LL;
 
-  /*
+  /***
    * Convert a range of characters into base36 number. Accepts 0-9 and A-Z as digits
    * type is a forward iterator to a char
+   * @param begin iterator to a begining of number to convert
+   * @param end iterator to an ending of number to convert
    */
   template<typename T>
   std::uint64_t base36(T begin, const T & end) {
@@ -32,6 +34,10 @@ std::uint64_t base36_max = 4738381338321616895LL;
     return result;
   };
 
+  /***
+   * Convert a string-equivalent to base36 number
+   * @param s string-equivalent input, at most 12-characters long
+   */
   template<typename T>
   std::uint64_t base36(T s) {
     return base36(s.begin(), s.end());
