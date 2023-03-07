@@ -76,7 +76,6 @@ namespace pitchstream
             auto symbol_b = begin + ORDER_ADD_SYMBOL_OFFSET;
             auto symbol_e = symbol_b + ORDER_ADD_SYMBOL_LENGTH;
             symbol_e = find(symbol_b, symbol_e, ' ');
-
             out->stock_symbol = std::string(symbol_b, symbol_e);
 
             return out;
@@ -96,7 +95,7 @@ namespace pitchstream
             {
                 return p_message();
             }
-            
+
             p_message out(new pitch_message(message_type::order_executed));
 
             out->order_id = base36(begin + COMMON_ORDER_ID_OFFSET,
@@ -141,7 +140,28 @@ namespace pitchstream
         template <typename T>
         static p_message decode_trade(const T &begin, const T &end)
         {
+            const int ORDER_TRADE_LENGTH = 57;
+            const int ORDER_TRADE_SHARES_OFFSET = 23;
+            const int ORDER_TRADE_SHARES_LENGTH = 6;
+
+            const int ORDER_TRADE_SYMBOL_OFFSET = 29;
+            const int ORDER_TRADE_SYMBOL_LENGTH = 6;
+
+            if (end - begin < ORDER_TRADE_LENGTH)
+            {
+                return p_message();
+            }
+
             p_message out(new pitch_message(message_type::trade_message));
+
+            out->shares_count = std::stoi(std::string(
+                begin + ORDER_TRADE_SHARES_OFFSET,
+                begin + ORDER_TRADE_SHARES_OFFSET + ORDER_TRADE_SHARES_LENGTH));
+
+            auto symbol_b = begin + ORDER_TRADE_SYMBOL_OFFSET;
+            auto symbol_e = symbol_b + ORDER_TRADE_SYMBOL_LENGTH;
+            symbol_e = find(symbol_b, symbol_e, ' ');
+            out->stock_symbol = std::string(symbol_b, symbol_e);
 
             return out;
         }

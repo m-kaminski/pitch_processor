@@ -78,7 +78,6 @@ namespace pitchstream
             EXPECT_EQ(p_m->get_shares_count(), 100);
         }
 
-
         TEST_F(pitch_decode_test, order_execute_short_line_fails)
         {
             std::string EXECUTE_ORDER(SAMPLE_EXECUTE);
@@ -87,7 +86,6 @@ namespace pitchstream
                         pitch_decoder::decode(EXECUTE_ORDER.begin(), EXECUTE_ORDER.end());
             EXPECT_EQ(p_m.get(), nullptr);
         }
-
 
         // test cancel
         TEST_F(pitch_decode_test, cancel_order_correct_type)
@@ -116,6 +114,17 @@ namespace pitchstream
                         pitch_decoder::decode(SAMPLE_TRADE.begin(), SAMPLE_TRADE.end());
             EXPECT_NE(p_m.get(), nullptr);
             EXPECT_EQ(p_m->get_type(), message_type::trade_message);
+            EXPECT_EQ(p_m->get_shares_count(), 100);
+            EXPECT_EQ(p_m->get_stock_symbol(), "DRYS");
+        }
+
+        TEST_F(pitch_decode_test, trade_message_short_line_fails)
+        {
+            std::string TRADE_MESSAGE(SAMPLE_TRADE);
+            TRADE_MESSAGE.pop_back();
+            std::unique_ptr<pitch_message> p_m = 
+                        pitch_decoder::decode(TRADE_MESSAGE.begin(), TRADE_MESSAGE.end());
+            EXPECT_EQ(p_m.get(), nullptr);
         }
 
         // test operations via unordered map
