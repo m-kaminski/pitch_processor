@@ -12,9 +12,13 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 
 enable_testing()
+include(GoogleTest)
 
 add_executable(base36_test base36_test.cpp)
 target_link_libraries(base36_test GTest::gtest_main)
-
-include(GoogleTest)
 gtest_discover_tests(base36_test)
+
+add_executable(pitch_decoder_test pitch_decoder_test.cpp)
+target_link_libraries(pitch_decoder_test GTest::gtest_main)
+gtest_discover_tests(pitch_decoder_test)
+
