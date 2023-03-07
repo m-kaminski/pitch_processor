@@ -22,3 +22,7 @@ add_executable(pitch_decoder_test pitch_decoder_test.cpp)
 target_link_libraries(pitch_decoder_test GTest::gtest_main)
 gtest_discover_tests(pitch_decoder_test)
 
+
+add_executable(event_accumulator_test event_accumulator.cpp event_accumulator_test.cpp)
+target_link_libraries(event_accumulator_test GTest::gtest_main)
+gtest_discover_tests(event_accumulator_test)

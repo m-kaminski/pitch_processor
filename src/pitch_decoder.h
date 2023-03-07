@@ -1,5 +1,5 @@
-#ifndef _PITCH_DECODE_H
-#define _PITCH_DECODE_H
+#ifndef _PITCH_DECODER_H
+#define _PITCH_DECODER_H
 #include <memory>
 #include "base36.h"
 #include "pitch_message.h"

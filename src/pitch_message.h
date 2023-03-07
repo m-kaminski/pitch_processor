@@ -1,5 +1,7 @@
 #ifndef _PITCH_MESSAGE_H
 #define _PITCH_MESSAGE_H
+#include <cstdint>
+#include <string>
 namespace pitchstream
 {
     class pitch_decoder;
