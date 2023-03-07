@@ -76,7 +76,7 @@ namespace pitchstream
 
             T symbol_b = begin + ORDER_ADD_SYMBOL_OFFSET;
             T symbol_e = symbol_b + ORDER_ADD_SYMBOL_LENGTH;
-            symbol_e = find(symbol_b, symbol_e, ' ');
+            symbol_e = std::find(symbol_b, symbol_e, ' ');
             out->stock_symbol = std::string(symbol_b, symbol_e);
 
             return out;
@@ -161,7 +161,7 @@ namespace pitchstream
 
             auto symbol_b = begin + ORDER_TRADE_SYMBOL_OFFSET;
             auto symbol_e = symbol_b + ORDER_TRADE_SYMBOL_LENGTH;
-            symbol_e = find(symbol_b, symbol_e, ' ');
+            symbol_e = std::find(symbol_b, symbol_e, ' ');
             out->stock_symbol = std::string(symbol_b, symbol_e);
 
             return out;

@@ -1,7 +1,6 @@
 #include <iostream>
 #include <string>
 #include <fstream>
-
 #include "summary_fotmatter.h"
 #include "pitch_message.h"
 #include "pitch_decoder.h"
@@ -17,8 +16,8 @@ namespace pitchstream {
         std::string s;
         while (std::getline(std::cin, s)) {
             // for each event
-            auto ev = pitch_decoder::decode(s.begin(), s.end());
-            a.process_message(std::move(ev));
+            a.process_message(std::move(
+                pitch_decoder::decode(s.begin(), s.end())));
         }
         format_summary(std::cout , a.generate_summary_n(10));
     }
@@ -26,5 +25,7 @@ namespace pitchstream {
 
 int main(int argc, char **argv)
 {
+    std::ios_base::sync_with_stdio (false);
+    std::cin.tie(NULL);
     pitchstream::process_input();
 }
