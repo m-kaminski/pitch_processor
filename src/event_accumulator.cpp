@@ -1,3 +1,4 @@
+#include <algorithm>
 
 #include "pitch_message.h"
 #include "event_accumulator.h"
@@ -6,6 +7,11 @@ namespace pitchstream
 {
     using p_message = event_accumulator::p_message;
     using v_summary = event_accumulator::v_summary;
+    using v_summary_item = event_accumulator::v_summary_item;
+
+    static auto summary_comp = [] (const v_summary_item & v1, const v_summary_item & v2) {
+        return v1.second > v2.second;
+    };
 
     void event_accumulator::process_message(p_message &&input)
     {
@@ -28,14 +34,20 @@ namespace pitchstream
     v_summary event_accumulator::generate_summary_all()
     {
         event_accumulator::v_summary res;
-
+        res.reserve(counters.size());
         std::copy(counters.begin(), counters.end(), back_inserter(res));
+        std::sort(res.begin(), res.end(), summary_comp);
         return res;
     }
 
     v_summary event_accumulator::generate_summary_n(int n)
     {
-        event_accumulator::v_summary res;
+        if (n > counters.size())
+            return generate_summary_all();
+        event_accumulator::v_summary res(n);
+        std::partial_sort_copy(counters.begin(), counters.end(),
+                        res.begin(), res.end(), summary_comp);
+
         return res;
     }
 

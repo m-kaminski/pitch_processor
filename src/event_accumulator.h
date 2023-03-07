@@ -13,8 +13,9 @@ namespace pitchstream
     class event_accumulator
     {
     public:
+        using v_summary_item = std::pair<std::string, uint64_t>;
         using p_message = std::unique_ptr<pitch_message>;
-        using v_summary = std::vector<std::pair<std::string, uint64_t>>;
+        using v_summary = std::vector<v_summary_item>;
 
         void process_message(p_message &&input);
 

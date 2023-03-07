@@ -19,7 +19,8 @@ namespace pitchstream
     {
     };
     using p_message = std::unique_ptr<pitch_message>;
-    using summary_res = std::pair<std::string, uint64_t>;
+    using v_summary_item = event_accumulator::v_summary_item;
+    using v_summary = event_accumulator::v_summary;
     TEST_F(event_accumulator_test, null_pointer_ignored)
     {
         event_accumulator a;
@@ -43,7 +44,7 @@ namespace pitchstream
         a.process_message(move(p_message(generate_add(1, 100, "AAPL"))));
         a.process_message(move(p_message(generate_execute(1, 40))));
         EXPECT_FALSE(a.generate_summary_all().empty());
-        EXPECT_EQ(a.generate_summary_all()[0], summary_res("AAPL", 40));
+        EXPECT_EQ(a.generate_summary_all()[0], v_summary_item("AAPL", 40));
     }
 
     TEST_F(event_accumulator_test, full_execution_erases_open)
@@ -68,7 +69,6 @@ namespace pitchstream
 
     TEST_F(event_accumulator_test, full_cancel_erases_open)
     {
-
         event_accumulator a;
         a.process_message(move(p_message(generate_add(1, 100, "AAPL"))));
         a.process_message(move(p_message(generate_cancel(1, 40))));
@@ -83,11 +83,40 @@ namespace pitchstream
         event_accumulator a;
         a.process_message(move(p_message(generate_trade(1, 100, "AAPL"))));
         EXPECT_FALSE(a.generate_summary_all().empty());
-        EXPECT_EQ(a.generate_summary_all()[0], summary_res("AAPL", 100));
+        EXPECT_EQ(a.generate_summary_all()[0], v_summary_item("AAPL", 100));
     }
 
     // here go scenarios related to sorting
+    TEST_F(event_accumulator_test, multiple_trades_summary_all)
+    {
+        event_accumulator a;
+        a.process_message(move(p_message(generate_add(1, 100, "BA"))));
+        a.process_message(move(p_message(generate_execute(1, 40))));
+        a.process_message(move(p_message(generate_execute(1, 60))));
+        a.process_message(move(p_message(generate_trade(1, 30, "BA"))));
+        a.process_message(move(p_message(generate_trade(1, 300, "NG"))));
+        a.process_message(move(p_message(generate_trade(1, 900, "LMT"))));
 
+        v_summary summary = a.generate_summary_all();
+        EXPECT_FALSE(summary.empty());
+        EXPECT_EQ(summary.size(), 3);
+        EXPECT_EQ(summary[0], v_summary_item("LMT", 900));
+        EXPECT_EQ(summary[1], v_summary_item("NG", 300));
+        EXPECT_EQ(summary[2], v_summary_item("BA", 130));
+    }
+
+    TEST_F(event_accumulator_test, multiple_trades_summary_n)
+    {
+        event_accumulator a;
+        a.process_message(move(p_message(generate_trade(1, 200, "BA"))));
+        a.process_message(move(p_message(generate_trade(1, 100, "NG"))));
+        a.process_message(move(p_message(generate_trade(1, 90, "LMT"))));
+
+        v_summary summary = a.generate_summary_n(2);
+        EXPECT_EQ(summary.size(), 2);
+        EXPECT_EQ(summary[0], v_summary_item("BA", 200));
+        EXPECT_EQ(summary[1], v_summary_item("NG", 100));
+    }
 
     // helper functions
     pitch_message *generate_add(uint64_t order_id, uint32_t shares_count, const std::string &stock_symbol)
