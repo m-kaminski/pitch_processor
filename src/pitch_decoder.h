@@ -88,8 +88,23 @@ namespace pitchstream
         template <typename T>
         static p_message decode_executed(const T &begin, const T &end)
         {
+            const int ORDER_EXECUTED_LENGTH = 40;
+            const int ORDER_EXECUTED_SHARES_OFFSET = 22;
+            const int ORDER_EXECUTED_SHARES_LENGTH = 6;
+
+            if (end - begin < ORDER_EXECUTED_LENGTH)
+            {
+                return p_message();
+            }
+            
             p_message out(new pitch_message(message_type::order_executed));
 
+            out->order_id = base36(begin + COMMON_ORDER_ID_OFFSET,
+                                   begin + COMMON_ORDER_ID_OFFSET + COMMON_ORDER_ID_LENGTH);
+
+            out->shares_count = std::stoi(std::string(
+                begin + ORDER_EXECUTED_SHARES_OFFSET,
+                begin + ORDER_EXECUTED_SHARES_OFFSET + ORDER_EXECUTED_SHARES_LENGTH));
             return out;
         }
 
