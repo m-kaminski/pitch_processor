@@ -1,6 +1,7 @@
 #ifndef _PITCH_DECODER_H
 #define _PITCH_DECODER_H
 #include <memory>
+#include <algorithm>
 #include "base36.h"
 #include "pitch_message.h"
 namespace pitchstream
@@ -73,8 +74,8 @@ namespace pitchstream
                 begin + ORDER_ADD_SHARES_OFFSET,
                 begin + ORDER_ADD_SHARES_OFFSET + ORDER_ADD_SHARES_LENGTH));
 
-            auto symbol_b = begin + ORDER_ADD_SYMBOL_OFFSET;
-            auto symbol_e = symbol_b + ORDER_ADD_SYMBOL_LENGTH;
+            T symbol_b = begin + ORDER_ADD_SYMBOL_OFFSET;
+            T symbol_e = symbol_b + ORDER_ADD_SYMBOL_LENGTH;
             symbol_e = find(symbol_b, symbol_e, ' ');
             out->stock_symbol = std::string(symbol_b, symbol_e);
 
