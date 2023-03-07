@@ -10,4 +10,8 @@ then
     echo build failed
 else
     cd build && ctest
+if [ $? -ne 0 ]
+then
+    ctest --rerun-failed --output-on-failure
+    fi
 fi
