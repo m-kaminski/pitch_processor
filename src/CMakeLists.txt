@@ -13,7 +13,7 @@ FetchContent_MakeAvailable(googletest)
 
 enable_testing()
 
-add_executable(base36_test base36.cpp)
+add_executable(base36_test base36_test.cpp)
 target_link_libraries(base36_test GTest::gtest_main)
 
 include(GoogleTest)
