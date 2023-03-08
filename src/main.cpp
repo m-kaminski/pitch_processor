@@ -19,6 +19,7 @@
 #include <condition_variable>
 #include <numeric>
 #include <cassert>
+#include "pitch/pitch_format_constants.h"
 namespace pitchstream
 {
 
@@ -38,6 +39,10 @@ namespace pitchstream
         std::vector<thread_status> thread_data(num_threads);
         int multistring_length = 1024 * 16;
         worker_thread wt;
+
+
+        for (int i = 0; i != num_threads; ++i)
+            thread_data[i].pre_input.reserve(multistring_length + 100);
         wt.set_run_function([&](worker_thread *w)
                             {
                                 int thread_id = w->get_id();
@@ -86,8 +91,6 @@ namespace pitchstream
         wt.run_with_children(num_threads);
         io.process_input([&](const char *B, const char *E)
                          {
-                             static const int COMMON_ORDER_ID_OFFSET = 10;
-                             static const int COMMON_ORDER_ID_LENGTH = 12;
                              int thread_id =
                                  std::accumulate(B + COMMON_ORDER_ID_OFFSET,
                                                  B + COMMON_ORDER_ID_OFFSET + COMMON_ORDER_ID_LENGTH,
@@ -99,15 +102,14 @@ namespace pitchstream
 
                              if (thread_data[thread_id].pre_input.size() > multistring_length)
                              {
-
                                  {
                                      std::unique_lock<std::mutex> lock(thread_data[thread_id].queue_mutex);
 
                                      thread_data[thread_id].inputs.emplace_back(move(thread_data[thread_id].pre_input));
                                  }
                                  thread_data[thread_id].mutex_condition.notify_one();
-                             }
-                         });
+                                 thread_data[thread_id].pre_input.reserve(multistring_length + 100);
+                             } });
         // end of file, send empty to each thread to terminate
 
         for (int i = 0; i != num_threads; ++i)
@@ -155,7 +157,7 @@ int main(int argc, char **argv)
     }
 
     pitchstream::process_input_mt(*ioe);
-    //pitchstream::process_input(*ioe);
+    // pitchstream::process_input(*ioe);
 
     return 0;
 }

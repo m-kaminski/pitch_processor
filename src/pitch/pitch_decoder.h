@@ -4,6 +4,7 @@
 #include <algorithm>
 #include "base36.h"
 #include "pitch_message.h"
+#include "pitch_format_constants.h"
 namespace pitchstream
 {
 
@@ -24,12 +25,10 @@ namespace pitchstream
         static p_message decode(const T &begin, const T &end)
         {
             const int MESSAGE_TYPE_OFFSET = 9;
-            const char MESSAGE_ADD_ORDER = 'A';
-            const char MESSAGE_ORDER_CANCEL = 'X';
-            const char MESSAGE_ORDER_EXECUTED = 'E';
-            const char MESSAGE_TRADE = 'P';
 
             if (end - begin <= MESSAGE_TYPE_OFFSET)
+                return p_message();
+            if (*begin != 'S')
                 return p_message();
             switch (*(begin + MESSAGE_TYPE_OFFSET))
             {
@@ -46,8 +45,6 @@ namespace pitchstream
         }
 
     private:
-        static const int COMMON_ORDER_ID_OFFSET = 10;
-        static const int COMMON_ORDER_ID_LENGTH = 12;
 
         /**
          * decode and validate Add Order message
@@ -55,13 +52,8 @@ namespace pitchstream
         template <typename T>
         static p_message decode_add(const T &begin, const T &end)
         {
-            const int ORDER_ADD_LENGTH = 46;
-            const int ORDER_ADD_SHARES_OFFSET = 23;
-            const int ORDER_ADD_SHARES_LENGTH = 6;
-            const int ORDER_ADD_SYMBOL_OFFSET = 29;
-            const int ORDER_ADD_SYMBOL_LENGTH = 6;
 
-            if (end - begin < ORDER_ADD_LENGTH)
+            if (end - begin != ORDER_ADD_LENGTH)
             {
                 return p_message();
             }
@@ -88,11 +80,8 @@ namespace pitchstream
         template <typename T>
         static p_message decode_executed(const T &begin, const T &end)
         {
-            const int ORDER_EXECUTED_LENGTH = 40;
-            const int ORDER_EXECUTED_SHARES_OFFSET = 22;
-            const int ORDER_EXECUTED_SHARES_LENGTH = 6;
 
-            if (end - begin < ORDER_EXECUTED_LENGTH)
+            if (end - begin != ORDER_EXECUTED_LENGTH)
             {
                 return p_message();
             }
@@ -114,11 +103,7 @@ namespace pitchstream
         template <typename T>
         static p_message decode_cancel(const T &begin, const T &end)
         {
-            const int ORDER_CANCEL_LENGTH = 28;
-            const int ORDER_CANCEL_SHARES_OFFSET = 23;
-            const int ORDER_CANCEL_SHARES_LENGTH = 6;
-
-            if (end - begin < ORDER_CANCEL_LENGTH)
+            if (end - begin != ORDER_CANCEL_LENGTH)
             {
                 return p_message();
             }
@@ -141,14 +126,7 @@ namespace pitchstream
         template <typename T>
         static p_message decode_trade(const T &begin, const T &end)
         {
-            const int ORDER_TRADE_LENGTH = 57;
-            const int ORDER_TRADE_SHARES_OFFSET = 23;
-            const int ORDER_TRADE_SHARES_LENGTH = 6;
-
-            const int ORDER_TRADE_SYMBOL_OFFSET = 29;
-            const int ORDER_TRADE_SYMBOL_LENGTH = 6;
-
-            if (end - begin < ORDER_TRADE_LENGTH)
+            if (end - begin != ORDER_TRADE_LENGTH)
             {
                 return p_message();
             }
