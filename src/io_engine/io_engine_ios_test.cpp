@@ -30,11 +30,12 @@ namespace pitchstream
             std::string tmpfile(file_template);
 
             // create an output file stream
-            std::ofstream fifofile(tmpfile);
+            std::ofstream outfile(tmpfile);
             sv solution({"foo", "bar", "baz"});
-            std::copy(solution.begin(), solution.end(), std::ostream_iterator<std::string>(fifofile, "\n"));
-            fifofile.close();
+            std::copy(solution.begin(), solution.end(), std::ostream_iterator<std::string>(outfile, "\n"));
+            outfile.close();
             // create input file stream and invoke reader
+
             sv output;
             std::ifstream infile(tmpfile);
             std::unique_ptr<pitchstream::io_engine> ioe(new pitchstream::io_engine_ios(infile));
@@ -74,8 +75,8 @@ namespace pitchstream
 
                 ioe->process_input([&](const char *b, const char *e)
                     {output.push_back(std::string(b,e));}); });
+            writer.join(); // first wait to finish writing, otherwise flaky test
             reader.join();
-            writer.join();
             EXPECT_EQ(output, solution);
             unlink(file_template);
         }
