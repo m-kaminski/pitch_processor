@@ -15,6 +15,7 @@ enable_testing()
 include(GoogleTest)
 
 
+add_subdirectory(io_engine)
 add_subdirectory(pitch)
 
 add_executable(pitch_processor main.cpp pitch/summary_formatter.cpp io_engine/io_engine_ios.cpp io_engine/io_engine_aio.cpp pitch/event_accumulator.cpp)

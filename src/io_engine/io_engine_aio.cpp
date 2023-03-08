@@ -90,12 +90,12 @@ namespace pitchstream
 
             if (aio_res == 0)
             {
-                std::cout << "likely eof" << std::endl;
+                // end of file
                 break;
             }
             if (aio_res < 0)
             {
-                std::cout << "likely io error" << std::endl;
+                throw std::runtime_error(strerror(errno));
                 break;
             }
 
@@ -121,6 +121,7 @@ namespace pitchstream
                 begin = eln + 1;
             }
 
+            io_pool[cur_io].cb.aio_offset += num_ios_inflight*buf_sz;
             int rr = aio_read(&io_pool[cur_io].cb);
 
             cur_io = (cur_io + 1) % num_ios_inflight;
