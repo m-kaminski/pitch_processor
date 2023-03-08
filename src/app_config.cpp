@@ -135,7 +135,7 @@ namespace pitchstream
             else if (argname == "-h")
             {
                 print_help(argv[0]);
-                return (0);
+                return (1);
             }
             else
             {

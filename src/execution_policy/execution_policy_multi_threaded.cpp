@@ -75,7 +75,6 @@ namespace pitchstream
 
     void execution_policy_multi_threaded::process_input_stage2(worker_thread *w)
     {
-
         int thread_id = w->get_id();
         while (true)
         {

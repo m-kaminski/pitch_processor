@@ -24,7 +24,6 @@ yum install gtest gtest-devel
 yum install libaio libaio-devel
 ```
 
-
 Build script provided creates executable in ./build directory
 
 ```
@@ -48,6 +47,7 @@ By default program uses IO Streams for reading input data, to use AIO instead us
 # OPTIONS
 
 ```
+./build/pitch_processor
 Program parses stream of trade messages in PITCH format (Order Add,
 Order Execute, Order Cancel, Trade) and calculates list of most frequently
 executed symbols
@@ -60,10 +60,38 @@ Program accepts following commandline options:
                         shouldn't be set above 2 for pipes)
 -ios : use io-streams for input (default option)
 -verbose : print options selected
+-nr[=N] : number of symbols to calculate (default: 10)
+-v : print info about applied options (in order)
+
 -h : display this very help message
 
 (c) Maciej (Matt) Kaminski
 ```
+
+# ALGORITHM
+
+Solution revolves around two hashing tables (implemented using standard
+C++ STL container std::unordered_map), first mapping id of open orders
+to state of an order (decoded from PITCH stream), second mapping symbols
+of executed shares to numbers of shares executed. 
+
+Calculating summaries of trades is implemented in event_accumulator class
+(src/pitch/event_accumulator.h).
+
+For Add Order message, a message is deposited in live_orders table
+For Cancel Order, number of shares outstanding is decremented through
+    live_orders table and entry is erased if number of shares drops to 0;
+    (if number drops below 0, exception out_of_range is thrown)
+For Order Executed, number of shares is also decremented from live_orders.
+    but also it is added to counters table of executed orders.
+For Trade message, number of shares is added to counters table as well.
+
+To calculate summary, std::sort or std::partial_sort is invoked.
+
+If multiple worker threads are used, work is divided based on order_id,
+in such a manner that if one order of given order_id is routed to a worker
+thread, every other order with the same order_id will end up with
+the same worker thread.
 
 # PERFORMANCE
 

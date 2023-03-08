@@ -16,6 +16,12 @@ namespace pitchstream
     public:
         app_config() : num_results(10) {}
 
+        /**
+         * process command line
+         * @result 0 if processed config and ready to work,
+         *         1 if help message displayed (remaining arguments ignored)
+         *         -1 if error occured in processing information
+        */
         int parse_command_line(int argc, const char * const * argv);
 
         std::shared_ptr<io_engine> get_io_engine()
