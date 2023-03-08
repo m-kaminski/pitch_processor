@@ -20,6 +20,8 @@ add_subdirectory(pitch)
 
 add_executable(pitch_processor 
 main.cpp 
+execution_policy_single_threaded.cpp
+execution_policy_multi_threaded.cpp
 worker_thread.cpp
 pitch/summary_formatter.cpp 
 io_engine/io_engine_ios.cpp 

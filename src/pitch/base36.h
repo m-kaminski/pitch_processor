@@ -4,7 +4,7 @@
 #include <stdexcept>
 namespace pitchstream
 {
-    std::uint64_t base36_max = 4738381338321616895LL;
+    static const std::uint64_t base36_max = 4738381338321616895LL;
 
     /***
      * Convert a range of characters into base36 number. Accepts 0-9 and A-Z as digits
