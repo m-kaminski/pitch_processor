@@ -20,11 +20,11 @@ const std::string help_message(
    "Order Execute, Order Cancel, Trade) and calculates list of most frequently\n"
    "executed symbols\n\n"
    "Program accepts following commandline options:\n"
-   "-mt[=N] : multi-threaded execution. If =N given, specific number of threads"
+   "-mt[=N] : multi-threaded execution. If =N given, specific number of threads\n"
    "-st : single-threaded execution (default)\n"
    "-aio[=bufsz,inflight] : use Linux AIO for input. Can select buffer size\n"
    "                        (kB) and maximum number of requests in flight (this\n"
-   "                        shouldn\'t be set above 2 for pipes)"
+   "                        shouldn\'t be set above 2 for pipes)\n"
    "-ios : use io-streams for input (default option)\n"
    "-verbose : print options selected\n"
    "-h : display this very help message\n\n"
@@ -39,7 +39,7 @@ int main(int argc, char **argv)
 {
     std::unique_ptr<pitchstream::io_engine> ioe;
     std::unique_ptr<pitchstream::execution_policy> ep;
-    
+
     // parse command line
     std::for_each(argv+1, argv+argc, [&](char* _argument){
         std::string argument(_argument);
