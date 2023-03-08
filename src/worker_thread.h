@@ -7,11 +7,11 @@
 #include <iostream>
 #include <thread>
 #include <functional>
+
 namespace pitchstream
 {
     class worker_thread
     {
-
     public:
         using p_t = worker_thread *;
         using u_ptr_t = std::unique_ptr<worker_thread>;
@@ -36,14 +36,15 @@ namespace pitchstream
          */
         void run_with_children(int count)
         {
-            run();
             if (running)
             {
                 return;
             }
             children.resize(count + 1); // all children + self
 
+            run();
             run_with_children(count, children);
+            join_with_children(count, children);
             join(this);
         }
 
@@ -61,15 +62,17 @@ namespace pitchstream
         using join_function_type = std::function<void(worker_thread *, worker_thread *)>;
         using run_function_type = std::function<void(worker_thread *)>;
 
-
-        void set_join_function(join_function_type _join_function) {
+        void set_join_function(join_function_type _join_function)
+        {
             join_function = _join_function;
         }
 
-        void set_run_function(run_function_type _run_function) {
+        void set_run_function(run_function_type _run_function)
+        {
             run_function = _run_function;
         }
-    protected:
+
+    private:
         // replace this function to achieve expected behavior
         static void default_run_function(worker_thread *self)
         {
@@ -81,31 +84,32 @@ namespace pitchstream
             std::cout << "joined thread " << other->get_id() << " to " << self->get_id() << "\n";
         }
 
-    private:
         join_function_type join_function;
         run_function_type run_function;
 
         worker_thread(int id, std::vector<p_t> &_worker_vector,
-                      join_function_type _join_function, run_function_type _run_function) : thread_id(id),
-                                                                                            running(false),
-                                                                                            worker_vector(_worker_vector),
-                                                                                            join_function(_join_function),
-                                                                                            run_function(_run_function)
+                      join_function_type _join_function,
+                      run_function_type _run_function) : thread_id(id),
+                                                         running(false),
+                                                         worker_vector(_worker_vector),
+                                                         join_function(_join_function),
+                                                         run_function(_run_function)
         {
             std::cout << "created thread id " << id << "/" << worker_vector.size() << " (c)\n";
         }
 
         void run()
         {
+            running = true;
+            // run thread with given function
             p_thread_obj.reset(new std::thread([&]()
                                                { run_function(this); }));
         }
 
         void join(worker_thread *other)
         {
-
             other->p_thread_obj->join();
-            join_function(this, other);
+            join_function(this, other);   
         }
 
         std::unique_ptr<std::thread> p_thread_obj;
@@ -117,32 +121,54 @@ namespace pitchstream
 
         void run_with_children(int count, std::vector<p_t> &_worker_vector)
         {
-
+            std::cout << "Creating " << count << " children " << thread_id << std::endl;
             if (count == 0)
             {
-                return;
+                ;
             }
             else if (count == 1)
             {
-                u_ptr_t t(new worker_thread(thread_id + 1, _worker_vector, join_function, run_function));
-                worker_vector[thread_id + 1] = t.get();
+                p_t t(new worker_thread(thread_id + 1, _worker_vector, join_function, run_function));
+                worker_vector[thread_id + 1] = t;
                 t->run();
-
-                join(t.get());
             }
             else
             {
                 int lower_half = count / 2;
                 int upper_half = count - lower_half;
 
-                u_ptr_t t(new worker_thread(thread_id + lower_half, _worker_vector, join_function, run_function));
-                worker_vector[thread_id + lower_half] = t.get();
-                // create children
-                run_with_children(lower_half - 1, _worker_vector);
-                t->run_with_children(upper_half, _worker_vector);
+                p_t t(new worker_thread(thread_id + lower_half, _worker_vector, join_function, run_function));
+                worker_vector[thread_id + lower_half] = t;                
                 t->run();
-                join(t.get());
+
+                // recursively
+                run_with_children(lower_half - 1, _worker_vector);
+                t->run_with_children(upper_half, _worker_vector);   
             }
+        }
+
+        void join_with_children(int count, std::vector<p_t> &_worker_vector)
+        {
+
+            if (count == 0)
+            {
+                ;
+            }
+            else if (count == 1)
+            {
+                join(worker_vector[thread_id + 1]);
+            }
+            else
+            {
+                int lower_half = count / 2;
+                int upper_half = count - lower_half;
+                // create children
+                join_with_children(lower_half - 1, _worker_vector);
+                worker_vector[thread_id + lower_half]->join_with_children(upper_half, _worker_vector);
+                
+                join(worker_vector[thread_id + lower_half]);
+            }
+
         }
     };
 
