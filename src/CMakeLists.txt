@@ -34,7 +34,6 @@ target_link_libraries(pitch_processor rt pthread)
 
 
 
-
 ### tests
 add_executable(app_config_test 
 app_config.cpp 
@@ -47,5 +46,6 @@ io_engine/io_engine_ios.cpp
 pitch/event_accumulator.cpp
 pitch/summary_formatter.cpp 
 )
-target_link_libraries(app_config_test GTest::gtest_main rt)
+target_compile_options(app_config_test PRIVATE -g -O0 --coverage -fprofile-arcs -ftest-coverage)
+target_link_libraries(app_config_test GTest::gtest_main rt gcov)
 gtest_discover_tests(app_config_test pthread)
