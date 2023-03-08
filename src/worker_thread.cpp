@@ -75,8 +75,6 @@ namespace pitchstream
 
     void worker_thread::run_with_children(int count, std::vector<p_t> &_worker_vector)
     {
-        std::cout << "Creating " << count << " children " << thread_id << std::endl;
-
         for (int i = 0; i != count; ++i)
         {
             p_t t(new worker_thread(i, _worker_vector, join_function, run_function));

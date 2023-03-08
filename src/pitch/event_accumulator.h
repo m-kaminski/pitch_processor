@@ -21,6 +21,7 @@ namespace pitchstream
 
         v_summary generate_summary_all();
         v_summary generate_summary_n(int n);
+    void add(event_accumulator & other);
 
     private:
         // live orders, unless cancelled/filled

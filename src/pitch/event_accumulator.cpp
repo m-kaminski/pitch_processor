@@ -51,6 +51,12 @@ namespace pitchstream
         return res;
     }
 
+    void event_accumulator::add(event_accumulator & other) {
+        for (auto & p : other.counters) {
+            counters[p.first] += p.second;
+        }
+    }
+
     void event_accumulator::process_add(p_message &&input)
     {
         live_orders[input->get_order_id()] = move(input);
