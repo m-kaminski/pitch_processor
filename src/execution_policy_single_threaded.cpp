@@ -22,5 +22,4 @@ namespace pitchstream
 
         format_summary(std::cout, a.generate_summary_n(num_results));
     }
-
 }

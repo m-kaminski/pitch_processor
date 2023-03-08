@@ -1,1 +1,4 @@
 /build/*
+/.vscode
+/callgrind*
+/large_sample*
