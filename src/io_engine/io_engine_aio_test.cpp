@@ -36,12 +36,42 @@ namespace pitchstream
 
             // create an output file stream
             std::ofstream outfile(tmpfile);
-            sv solution({"foo", "bar", "baz"});
+            sv solution({"foo", "bar", "baz", "alpha", "bravo", "charlie"});
             std::copy(solution.begin(), solution.end(), std::ostream_iterator<std::string>(outfile, "\n"));
             outfile.close();
             // create input file stream and invoke reader
 
-            //system("ls -lh /tmp");
+            sv output;
+            int ifd = open(tmpfile.c_str(), O_RDONLY);
+            std::cout << "tmp file is " << tmpfile << " fd " << ifd << "\n";
+            EXPECT_NE(ifd, -1);
+
+
+            std::unique_ptr<pitchstream::io_engine> ioe(new pitchstream::io_engine_aio(ifd,8,4));
+            
+            ioe->process_input([&](const char *b, const char *e)
+                               { output.push_back(std::string(b, e)); });
+            close(ifd);
+
+            EXPECT_NE(ioe.get(), nullptr);
+            EXPECT_EQ(output, solution);
+            unlink(file_template);
+        }
+
+        TEST_F(io_engine_aio_test, missing_terminating_newline)
+        {
+            using sv = std::vector<std::string>;
+            char file_template[] = "/tmp/pitchstream_io_engine_test_XXXXXX";
+            mktemp(file_template);
+            std::string tmpfile(file_template);
+
+            // create an output file stream
+            std::ofstream outfile(tmpfile);
+            sv solution({"foo", "bar", "baz"});
+            outfile << "foo\nbar\nbaz";
+            outfile.close();
+            // create input file stream and invoke reader
+
             sv output;
             int ifd = open(tmpfile.c_str(), O_RDONLY);
             std::cout << "tmp file is " << tmpfile << " fd " << ifd << "\n";
@@ -67,7 +97,7 @@ namespace pitchstream
             std::string tmpfile(file_template);
             mkfifo(file_template, 0666);
 
-            sv solution({"foo", "bar", "baz"});
+            sv solution({"foo", "bar", "baz", "alpha", "bravo", "charlie"});
 
             std::thread writer([&]()
                                {
@@ -117,7 +147,6 @@ namespace pitchstream
                                {
                 system(fifo_command.c_str());
                 });
-            // create input file stream and invoke reader
             sv output;
 
             std::thread reader([&]()
