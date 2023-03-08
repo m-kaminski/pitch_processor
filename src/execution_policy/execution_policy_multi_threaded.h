@@ -7,8 +7,8 @@
 #include <condition_variable>
 #include <numeric>
 #include <cassert>
-#include "pitch/event_accumulator.h"
-#include "pitch/pitch_format_constants.h"
+#include "../pitch/event_accumulator.h"
+#include "../pitch/pitch_format_constants.h"
 #include "execution_policy.h"
 #include "worker_thread.h"
 namespace pitchstream

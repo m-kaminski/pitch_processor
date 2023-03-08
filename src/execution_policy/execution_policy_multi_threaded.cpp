@@ -3,10 +3,10 @@
 #include <fstream>
 #include <iterator>
 
-#include "pitch/summary_fotmatter.h"
-#include "pitch/pitch_message.h"
-#include "pitch/pitch_decoder.h"
-#include "pitch/event_accumulator.h"
+#include "../pitch/summary_fotmatter.h"
+#include "../pitch/pitch_message.h"
+#include "../pitch/pitch_decoder.h"
+#include "../pitch/event_accumulator.h"
 #include "worker_thread.h"
 #include "execution_policy_multi_threaded.h"
 

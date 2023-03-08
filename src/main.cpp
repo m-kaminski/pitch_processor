@@ -10,10 +10,9 @@
 #include "io_engine/io_engine.h"
 #include "io_engine/io_engine_ios.h"
 #include "io_engine/io_engine_aio.h"
-#include "worker_thread.h"
-#include "execution_policy.h"
-#include "execution_policy_single_threaded.h"
-#include "execution_policy_multi_threaded.h"
+#include "execution_policy/execution_policy.h"
+#include "execution_policy/execution_policy_single_threaded.h"
+#include "execution_policy/execution_policy_multi_threaded.h"
 
 const std::string help_message(
    "Program parses stream of trade messages in PITCH format (Order Add,\n"
