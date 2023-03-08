@@ -118,6 +118,22 @@ namespace pitchstream
         EXPECT_EQ(summary[1], v_summary_item("NG", 100));
     }
 
+    TEST_F(event_accumulator_test, accumulator_addition)
+    {
+        event_accumulator a1;
+        event_accumulator a2;
+        a1.process_message(move(p_message(generate_trade(1, 200, "BA"))));
+        a1.process_message(move(p_message(generate_trade(1, 100, "NG"))));
+        a2.process_message(move(p_message(generate_trade(1, 400, "BA"))));
+        a2.process_message(move(p_message(generate_trade(1, 300, "LMT"))));
+
+        a1.add(a2);
+        v_summary summary = a1.generate_summary_n(2);
+        EXPECT_EQ(summary.size(), 2);
+        EXPECT_EQ(summary[0], v_summary_item("BA", 600));
+        EXPECT_EQ(summary[1], v_summary_item("LMT", 300));
+    }
+
     // helper functions
     pitch_message *generate_add(uint64_t order_id, uint32_t shares_count, const std::string &stock_symbol)
     {

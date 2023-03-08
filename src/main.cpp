@@ -51,6 +51,7 @@ int main(int argc, char **argv)
         if (argname == "-st") {
             ep.reset(new pitchstream::execution_policy_single_threaded);
         } else if (argname == "-nr") {
+            
             num_results = stoi(std::string(next(it),argument.end()));
             if (num_results == 0) {
                 std::cerr << "Can't process number of results"
@@ -59,6 +60,7 @@ int main(int argc, char **argv)
             }
 
         } else if (argname == "-mt") {
+
             int threads = 0;
             if (argparms.empty()) {
                 threads = std::thread::hardware_concurrency();
@@ -97,7 +99,6 @@ int main(int argc, char **argv)
                 << inflight << " requests in flight.\n";
                 bufsz *= 1024;
                 ioe.reset(new pitchstream::io_engine_aio(0, bufsz, inflight));
-
             } 
 
         } else if (argname == "-ios") {
