@@ -28,6 +28,8 @@ namespace pitchstream
          * create number of workers including self
          */
         void run_with_children(int count);
+        
+        void join_with_children();
 
         int get_id()
         {

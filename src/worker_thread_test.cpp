@@ -22,7 +22,9 @@ namespace pitchstream
 
             worker_thread wt;
             wt.run_with_children(9);
+            wt.join_with_children();
         }
+        
         TEST_F(worker_thread_test, access_shared_resources)
         {
 
@@ -34,7 +36,8 @@ namespace pitchstream
                                 {           std::cout << "running inside thread id " << w->get_id() << "\n";
                 std::scoped_lock lock(hello_mutex);
                 hello_thread.push_back(w->get_id()); });
-            wt.run_with_children(9);
+            wt.run_with_children(10);
+            wt.join_with_children();
             std::vector<int> expected(10);
             std::iota(expected.begin(), expected.end(), 0);
             std::sort(hello_thread.begin(), hello_thread.end());
@@ -52,7 +55,8 @@ namespace pitchstream
             wt.set_run_function([&](worker_thread *w)
                                 {           std::cout << "running inside thread id " << w->get_id() << "\n";
                 hello_thread[w->get_id()] = w->get_id(); });
-            wt.run_with_children(num_threads - 1);
+            wt.run_with_children(num_threads);
+            wt.join_with_children();
             std::vector<int> expected(num_threads);
             std::iota(expected.begin(), expected.end(), 0);
             // no sort unlike previous test
@@ -78,7 +82,8 @@ namespace pitchstream
                                     if (self != other)
                                     hello_thread[self->get_id()] += hello_thread[other->get_id()]; });
 
-            wt.run_with_children(num_threads - 1);
+            wt.run_with_children(num_threads);
+            wt.join_with_children();
             EXPECT_EQ((num_threads) * (num_threads - 1) / 2, hello_thread[0]);
         }
 
@@ -104,7 +109,8 @@ namespace pitchstream
                                     hello_thread[self->get_id()] += hello_thread[other->get_id()];
                                 nanosleep(&ts_req, &ts_rem); });
 
-            wt.run_with_children(num_threads - 1);
+            wt.run_with_children(num_threads);
+            wt.join_with_children();
             EXPECT_EQ((num_threads) * (num_threads - 1) / 2, hello_thread[0]);
         }
     }
