@@ -2,3 +2,4 @@
 /.vscode
 /callgrind*
 /large_sample*
+/sample_data/example_output

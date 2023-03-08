@@ -12,6 +12,14 @@ namespace pitchstream
         io_engine_aio(int input_fd, int buffer_size, int num_ios_inflight);
         void process_input(line_handler handler);
 
+        int get_max_ios_inflight() {
+            return num_ios_inflight;
+        }
+
+        int get_buffer_size() {
+            return buffer_size;
+        }
+        
         private:
         // file descriptor, size of read buffer and max number of ios in flight (must be divisible by 2)
         int input_fd;

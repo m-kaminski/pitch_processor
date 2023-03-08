@@ -21,7 +21,9 @@ namespace pitchstream
         thread_data(_num_threads) {}
 
         virtual void run();
-
+        int get_num_threads() {
+            return num_threads;
+        }
     private:
         struct thread_status
         {

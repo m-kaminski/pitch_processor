@@ -21,6 +21,7 @@ add_subdirectory(execution_policy)
 
 add_executable(pitch_processor 
 main.cpp 
+app_config.cpp
 execution_policy/execution_policy_single_threaded.cpp
 execution_policy/execution_policy_multi_threaded.cpp
 execution_policy/worker_thread.cpp
@@ -32,3 +33,19 @@ pitch/summary_formatter.cpp
 target_link_libraries(pitch_processor rt pthread)
 
 
+
+
+### tests
+add_executable(app_config_test 
+app_config.cpp 
+app_config_test.cpp
+execution_policy/execution_policy_single_threaded.cpp
+execution_policy/execution_policy_multi_threaded.cpp
+execution_policy/worker_thread.cpp
+io_engine/io_engine_aio.cpp 
+io_engine/io_engine_ios.cpp 
+pitch/event_accumulator.cpp
+pitch/summary_formatter.cpp 
+)
+target_link_libraries(app_config_test GTest::gtest_main rt)
+gtest_discover_tests(app_config_test pthread)
