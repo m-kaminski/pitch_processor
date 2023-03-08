@@ -24,6 +24,11 @@ yum install gtest gtest-devel
 yum install libaio libaio-devel
 ```
 
+3. You will also need to install lib aio (Linux Asynchronous IO)
+```
+yum install libaio libaio-devel
+```
+
 Build script provided creates executable in ./build directory
 
 ```
