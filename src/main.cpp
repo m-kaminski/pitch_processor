@@ -27,6 +27,7 @@ const std::string help_message(
    "                        shouldn\'t be set above 2 for pipes)\n"
    "-ios : use io-streams for input (default option)\n"
    "-verbose : print options selected\n"
+   "-nr[=N] : number of symbols to calculate (default: 10)\n"
    "-h : display this very help message\n\n"
    "(c) Maciej (Matt) Kaminski\n"
 );
@@ -39,6 +40,7 @@ int main(int argc, char **argv)
 {
     std::unique_ptr<pitchstream::io_engine> ioe;
     std::unique_ptr<pitchstream::execution_policy> ep;
+    int num_results=10;
 
     // parse command line
     std::for_each(argv+1, argv+argc, [&](char* _argument){
@@ -48,6 +50,14 @@ int main(int argc, char **argv)
         auto argparms = std::string(it, argument.end());
         if (argname == "-st") {
             ep.reset(new pitchstream::execution_policy_single_threaded);
+        } else if (argname == "-nr") {
+            num_results = stoi(std::string(next(it),argument.end()));
+            if (num_results == 0) {
+                std::cerr << "Can't process number of results"
+                          << std::endl;
+                exit(-1);
+            }
+
         } else if (argname == "-mt") {
             int threads = 0;
             if (argparms.empty()) {
@@ -103,6 +113,7 @@ int main(int argc, char **argv)
 
     });
 
+    // set defaults if not set
     if (!ioe)
         ioe.reset(new pitchstream::io_engine_ios(std::cin));
 
@@ -111,7 +122,7 @@ int main(int argc, char **argv)
 
     // run
     ep->set_io_engine(ioe.get());
+    ep->set_num_results(num_results);
     ep->run();
-
     return 0;
 }

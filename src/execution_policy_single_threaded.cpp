@@ -20,7 +20,7 @@ namespace pitchstream
                            { a.process_message(std::move(
                                  pitch_decoder::decode(B, E))); });
 
-        format_summary(std::cout, a.generate_summary_n(10));
+        format_summary(std::cout, a.generate_summary_n(num_results));
     }
 
 }

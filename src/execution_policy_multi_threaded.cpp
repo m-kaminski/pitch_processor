@@ -16,7 +16,7 @@ namespace pitchstream
     void execution_policy_multi_threaded::run()
     {
         worker_thread wt;
-        
+
         for (int i = 0; i != num_threads; ++i)
             thread_data[i].pre_input.reserve(multistring_length + 100);
         wt.set_run_function([&](worker_thread *w)
@@ -44,7 +44,7 @@ namespace pitchstream
         {
             thread_data[0].a.add(thread_data[i].a);
         }
-        format_summary(std::cout, thread_data[0].a.generate_summary_n(10));
+        format_summary(std::cout, thread_data[0].a.generate_summary_n(num_results));
     }
 
 
