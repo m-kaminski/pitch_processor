@@ -5,7 +5,9 @@ frequently executed stocks on standard output.
 
 
 
-# To build and execute in RHEL/CentOS operating system you will need to install the following
+# BUILD
+
+To build and execute in RHEL/CentOS operating system you will need to install the following
 
 1. C++ development tools
 ```
@@ -22,3 +24,22 @@ yum install gtest gtest-devel
 yum install libaio libaio-devel
 ```
 
+Build script provided creates executable in ./build directory
+
+```
+./build.sh
+```
+
+# EXECUTE
+
+To execute program, run following command:
+
+```
+./build/pitch_processor < ../pitch_example_data
+```
+
+By default program uses IO Streams for reading input data, to use AIO instead use
+
+```
+./build/pitch_processor -aio < ../pitch_example_data
+```
