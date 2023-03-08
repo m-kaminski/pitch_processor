@@ -19,4 +19,11 @@ add_subdirectory(io_engine)
 add_subdirectory(pitch)
 
 add_executable(pitch_processor main.cpp pitch/summary_formatter.cpp io_engine/io_engine_ios.cpp io_engine/io_engine_aio.cpp pitch/event_accumulator.cpp)
-target_link_libraries(pitch_processor rt)
+target_link_libraries(pitch_processor rt pthread)
+
+
+
+### tests
+add_executable(worker_thread_test worker_thread_test.cpp)
+target_link_libraries(worker_thread_test GTest::gtest_main)
+gtest_discover_tests(worker_thread_test pthread)

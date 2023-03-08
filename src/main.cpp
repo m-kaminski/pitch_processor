@@ -10,6 +10,7 @@
 #include "io_engine/io_engine.h"
 #include "io_engine/io_engine_ios.h"
 #include "io_engine/io_engine_aio.h"
+#include "worker_thread.h"
 
 namespace pitchstream
 {
@@ -33,7 +34,6 @@ int main(int argc, char **argv)
         if (std::string(argv[1])=="-aio") {
             ioe.reset(new pitchstream::io_engine_aio(0, 1024*32, 16));
         }
-
     }
 
     pitchstream::process_input(*ioe);
