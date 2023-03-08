@@ -1,7 +1,5 @@
 #include "gtest/gtest.h"
 
-#include "io_engine.h"
-#include "io_engine_ios.h"
 #include <iostream>
 #include <string>
 #include <cstdlib>
@@ -13,6 +11,9 @@
 #include <fstream>
 #include <iterator>
 #include <thread>
+
+#include "io_engine.h"
+#include "io_engine_ios.h"
 
 namespace pitchstream
 {

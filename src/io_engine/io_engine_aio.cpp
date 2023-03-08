@@ -2,12 +2,7 @@
 #include <iostream>
 #include <string>
 #include <fstream>
-
 #include <iterator>
-
-#include "io_engine.h"
-#include "io_engine_aio.h"
-
 #include <vector>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -21,6 +16,9 @@
 #include <cstring>
 #include <algorithm>
 #include <sched.h>
+
+#include "io_engine.h"
+#include "io_engine_aio.h"
 
 namespace pitchstream
 {

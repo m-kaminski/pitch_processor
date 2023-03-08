@@ -14,8 +14,6 @@ namespace pitchstream
     {
     public:
         using p_t = worker_thread *;
-        using u_ptr_t = std::unique_ptr<worker_thread>;
-        using join_function_type = std::function<void(worker_thread *, worker_thread *)>;
         using run_function_type = std::function<void(worker_thread *)>;
 
         /***
@@ -46,18 +44,12 @@ namespace pitchstream
             return worker_vector[id];
         }
 
-        void set_join_function(join_function_type _join_function)
-        {
-            join_function = _join_function;
-        }
-
         void set_run_function(run_function_type _run_function)
         {
             run_function = _run_function;
         }
 
     private:
-        join_function_type join_function;
         run_function_type run_function;
 
         std::unique_ptr<std::thread> p_thread_obj;
@@ -69,10 +61,8 @@ namespace pitchstream
 
         // replace this function to achieve expected behavior
         static void default_run_function(worker_thread *self);
-        static void default_join_function(worker_thread *self, worker_thread *other);
 
         worker_thread(int id, std::vector<p_t> &_worker_vector,
-                      join_function_type _join_function,
                       run_function_type _run_function);
 
         void run();

@@ -2,7 +2,7 @@
 #include <vector>
 #include <mutex>
 #include <numeric>
-#include <time.h>
+
 #include "gtest/gtest.h"
 #include "worker_thread.h"
 
@@ -61,57 +61,6 @@ namespace pitchstream
             std::iota(expected.begin(), expected.end(), 0);
             // no sort unlike previous test
             EXPECT_EQ(expected, hello_thread);
-        }
-
-        TEST_F(worker_thread_test, join_instances)
-        {
-            int num_threads = 16;
-            std::vector<int> hello_thread(num_threads);
-            std::mutex hello_mutex;
-
-            worker_thread wt;
-            wt.set_run_function([&](worker_thread *w)
-                                { std::cout << "running inside thread id " << w->get_id() << "\n";
-                hello_thread[w->get_id()] = w->get_id(); });
-
-            wt.set_join_function([&](worker_thread *self, worker_thread *other)
-                                 {             
-                                    
-                                    std::cout << "joined thread " << other->get_id() << " to " << self->get_id() << "\n";
-                                    std::scoped_lock lock(hello_mutex);
-                                    if (self != other)
-                                    hello_thread[self->get_id()] += hello_thread[other->get_id()]; });
-
-            wt.run_with_children(num_threads);
-            wt.join_with_children();
-            EXPECT_EQ((num_threads) * (num_threads - 1) / 2, hello_thread[0]);
-        }
-
-        TEST_F(worker_thread_test, test_with_sleep)
-        {
-            int num_threads = 16;
-            std::vector<int> hello_thread(num_threads);
-            std::mutex hello_mutex;
-            timespec ts_req({0, 10000});
-            timespec ts_rem;
-            worker_thread wt;
-            wt.set_run_function([&](worker_thread *w)
-                                { std::cout << "running inside thread id " << w->get_id() << "\n";
-                                nanosleep(&ts_req, &ts_rem);
-                hello_thread[w->get_id()] = w->get_id(); });
-
-            wt.set_join_function([&](worker_thread *self, worker_thread *other)
-                                 {             
-                                    
-                                    std::cout << "joined thread " << other->get_id() << " to " << self->get_id() << "\n";
-                                    std::scoped_lock lock(hello_mutex);
-                                    if (self != other)
-                                    hello_thread[self->get_id()] += hello_thread[other->get_id()];
-                                nanosleep(&ts_req, &ts_rem); });
-
-            wt.run_with_children(num_threads);
-            wt.join_with_children();
-            EXPECT_EQ((num_threads) * (num_threads - 1) / 2, hello_thread[0]);
         }
     }
 }

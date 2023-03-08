@@ -16,9 +16,7 @@ namespace pitchstream
     void execution_policy_multi_threaded::run()
     {
         worker_thread wt;
-        //thread_data.resize(num_threads);
-
-
+        
         for (int i = 0; i != num_threads; ++i)
             thread_data[i].pre_input.reserve(multistring_length + 100);
         wt.set_run_function([&](worker_thread *w)
@@ -34,7 +32,6 @@ namespace pitchstream
             {
                 std::unique_lock<std::mutex> lock(thread_data[i].queue_mutex);
                 thread_data[i].inputs.emplace_back(move(thread_data[i].pre_input));
-
                 thread_data[i].inputs.push_back(std::string());
             }
             thread_data[i].mutex_condition.notify_one();
@@ -42,6 +39,7 @@ namespace pitchstream
 
         wt.join_with_children();
 
+        // add up results
         for (int i = 1; i != num_threads; ++i)
         {
             thread_data[0].a.add(thread_data[i].a);

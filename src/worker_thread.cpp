@@ -2,7 +2,6 @@
 #include <iostream>
 #include <string>
 #include <fstream>
-
 #include <iterator>
 
 #include "worker_thread.h"
@@ -18,7 +17,6 @@ namespace pitchstream
                                      children(1, p_t(this)),
                                      worker_vector(children)
     {
-        join_function = std::bind(worker_thread::default_join_function, std::placeholders::_1, std::placeholders::_2);
         run_function = std::bind(worker_thread::default_run_function, std::placeholders::_1);
     }
 
@@ -44,17 +42,10 @@ namespace pitchstream
     void worker_thread::default_run_function(worker_thread *self)
     {
     }
-
-    void worker_thread::default_join_function(worker_thread *self, worker_thread *other)
-    {
-    }
-
     worker_thread::worker_thread(int id, std::vector<p_t> &_worker_vector,
-                                 join_function_type _join_function,
                                  run_function_type _run_function) : thread_id(id),
                                                                     running(false),
                                                                     worker_vector(_worker_vector),
-                                                                    join_function(_join_function),
                                                                     run_function(_run_function)
     {
     }
@@ -70,14 +61,13 @@ namespace pitchstream
     void worker_thread::join(worker_thread *other)
     {
         other->p_thread_obj->join();
-        join_function(this, other);
     }
 
     void worker_thread::run_with_children(int count, std::vector<p_t> &_worker_vector)
     {
         for (int i = 0; i != count; ++i)
         {
-            p_t t(new worker_thread(i, _worker_vector, join_function, run_function));
+            p_t t(new worker_thread(i, _worker_vector, run_function));
             worker_vector[i] = t;
             t->run();
         }
