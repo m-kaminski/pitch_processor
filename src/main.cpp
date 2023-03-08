@@ -6,6 +6,13 @@
 #include "pitch_decoder.h"
 #include "event_accumulator.h"
 
+
+#include <iterator>
+
+#include "io_engine/io_engine.h"
+#include "io_engine/io_engine_ios.h"
+#include "io_engine/io_engine_aio.h"
+
 // for aio
 #include <array>
 #include <fcntl.h>
@@ -22,11 +29,7 @@
 #include <sched.h>
 namespace pitchstream
 {
-    /***
-     * Process data in PITCH format from standard input,
-     * print summary to standard output
-     */
-    void process_input()
+    void io_engine_ios::process_input(io_engine::line_handler handler)
     {
         std::ios_base::sync_with_stdio(false);
         std::cin.tie(NULL);
@@ -35,10 +38,8 @@ namespace pitchstream
         while (std::getline(std::cin, s))
         {
             // for each event
-            a.process_message(std::move(
-                pitch_decoder::decode(s.begin(), s.end())));
+            handler(&*s.begin(), &*(s.begin() + s.size()) );
         }
-        format_summary(std::cout, a.generate_summary_n(10));
     }
 
     void count_lines_ios()
@@ -56,6 +57,9 @@ namespace pitchstream
         ;
     }
 
+
+
+
     struct io_request
     {
         aiocb cb;
@@ -63,7 +67,7 @@ namespace pitchstream
     };
 
     /***
-     * Time to ingest 2000000000 lines: 
+     * Time to ingest 2000000000 lines:
      * AIO, 32 in flight, 4k buf: 40.55
      * AIO, 16 in flight, 8k buf: 26.19
      * AIO, 32 in flight, 8k buf: 27.75
@@ -73,10 +77,10 @@ namespace pitchstream
      * IOS, 42.31
      */
 
-    void count_lines_aio()
-    {
+    void io_engine_aio::process_input(io_engine::line_handler handler) {
+
         const int num_ios_inflight = 8;
-        const int buf_sz = 8192*4;
+        const int buf_sz = 1024*64;
         int cur_io = 0;
         std::array<io_request, num_ios_inflight> io_pool;
         int line_count = 0;
@@ -91,9 +95,11 @@ namespace pitchstream
             io_pool[i].cb.aio_reqprio = 0;
             io_pool[i].cb.aio_fildes = 0; // stdin
             io_pool[i].cb.aio_buf = io_pool[i].iobuf.get();
-            io_pool[i].cb.aio_offset = 0;
+            io_pool[i].cb.aio_offset = i*buf_sz;
             io_pool[i].cb.aio_sigevent.sigev_notify = SIGEV_NONE;
         }
+
+        std::string carry_line;
 
         while (true)
         {
@@ -114,7 +120,6 @@ namespace pitchstream
             while (aio_error(&io_pool[cur_io].cb) == EINPROGRESS)
                 sched_yield(); // busy wait;
             int aio_res = aio_return(&io_pool[cur_io].cb);
-            // number of bytes read;
 
             if (aio_res == 0)
             {
@@ -126,21 +131,68 @@ namespace pitchstream
                 std::cout << "likely io error" << std::endl;
                 break;
             }
-            line_count += std::count(io_pool[cur_io].iobuf.get(), io_pool[cur_io].iobuf.get() + aio_res, '\n');
+
+            char * begin = io_pool[cur_io].iobuf.get();
+            char * end = io_pool[cur_io].iobuf.get() + aio_res;
+
+            int cctr = 0;
+            while (begin < end) {
+                char * eln  = std::find(begin, end, '\n');
+
+                if (eln == end ) {
+                    // no new line; done for this input
+                    carry_line += std::string(begin, end);
+                    break;
+                }
+                if (carry_line.size()) { // there is a carry line from previous input processing
+                    carry_line += std::string(begin, eln);
+                    handler(&*carry_line.begin(), &*(carry_line.begin() + carry_line.size()) );
+                    carry_line.erase();
+                } else {
+                    handler(begin, eln);
+                }
+                begin = eln + 1;
+            }
 
             int rr = aio_read(&io_pool[cur_io].cb);
 
             cur_io = (cur_io + 1) % num_ios_inflight;
         }
 
-        std::cout << line_count << std::endl;
+
     }
+
+
+
+
+    void process_input(pitchstream::io_engine & io)
+    {
+
+        event_accumulator a;
+
+        io.process_input([&](const char * B, const char * E){
+            //std::cout << "LINE: " << std::string(B,E) << std::endl;
+            a.process_message(std::move(
+                pitch_decoder::decode(B,E)));
+        });
+
+        format_summary(std::cout, a.generate_summary_n(10));
+    }
+
 
 }
 
 int main(int argc, char **argv)
 {
-    // pitchstream::process_input();
-    pitchstream::count_lines_ios();
-    //pitchstream::count_lines_aio();
+    std::unique_ptr<pitchstream::io_engine> ioe(new pitchstream::io_engine_ios);
+
+    if (argc > 1) {
+        if (std::string(argv[1])=="aio") {
+            std::cout << "using asynchronous IO" << std::endl;
+            ioe.reset(new pitchstream::io_engine_aio);
+        }
+
+    }
+
+    pitchstream::process_input(*ioe);
 }
