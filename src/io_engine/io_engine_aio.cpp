@@ -64,7 +64,7 @@ namespace pitchstream
             io_pool[i].cb.aio_reqprio = 0;
             io_pool[i].cb.aio_fildes = input_fd; // stdin
             io_pool[i].cb.aio_buf = io_pool[i].iobuf.get();
-            io_pool[i].cb.aio_offset = i * buffer_size;
+            io_pool[i].cb.aio_offset =  buffer_size * i;
             io_pool[i].cb.aio_sigevent.sigev_notify = SIGEV_NONE;
         }
 
@@ -97,7 +97,6 @@ namespace pitchstream
                 }
             }
             int aio_res = aio_return(&io_pool[cur_io].cb);
-
             if (aio_res == 0)
             {
                 // end of file
@@ -122,11 +121,15 @@ namespace pitchstream
                 {
                     // no new line; done for this input
                     carry_line += std::string(begin, end);
+
                     break;
                 }
                 if (carry_line.size())
                 { // there is a carry line from previous input processing
+
+
                     carry_line += std::string(begin, eln);
+
                     handler(&*carry_line.begin(), &*(carry_line.begin() + carry_line.size()));
                     carry_line.erase();
                 }
@@ -137,7 +140,7 @@ namespace pitchstream
                 begin = eln + 1;
             }
 
-            io_pool[cur_io].cb.aio_offset += num_ios_inflight * buffer_size;
+            io_pool[cur_io].cb.aio_offset += buffer_size * num_ios_inflight;
             int rr = aio_read(&io_pool[cur_io].cb);
 
             cur_io = (cur_io + 1) % num_ios_inflight;

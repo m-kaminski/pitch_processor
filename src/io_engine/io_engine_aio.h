@@ -15,7 +15,7 @@ namespace pitchstream
         private:
         // file descriptor, size of read buffer and max number of ios in flight (must be divisible by 2)
         int input_fd;
-        int buffer_size;
+        off_t buffer_size;
         int num_ios_inflight;
     };
 

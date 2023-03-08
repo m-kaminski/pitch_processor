@@ -29,16 +29,14 @@ namespace pitchstream
         std::string pre_input;
         std::mutex queue_mutex;
         std::condition_variable mutex_condition;
-        int counter = 0;
     };
 
     // try large character buffers (multiple strings) on input size
-
     void process_input_mt(pitchstream::io_engine &io)
     {
-        const int num_threads = 20;
+        const int num_threads = 32;
         std::vector<thread_status> thread_data(num_threads);
-        int multistring_length = 1024*16;
+        int multistring_length = 1024 * 16;
         worker_thread wt;
         wt.set_run_function([&](worker_thread *w)
                             {
@@ -68,11 +66,11 @@ namespace pitchstream
                                             auto middle = begin;
                                             auto end = message.end();
                                             while (middle != end) {
-                                                auto nm = std::find(middle,end, '\n');
+                                                auto new_middle = std::find(middle,end, '\n');
 
                                             thread_data[thread_id].a.process_message(std::move(
-                                                pitch_decoder::decode(middle,nm)));
-                                                middle = nm+1;
+                                                pitch_decoder::decode(middle, new_middle)));
+                                                middle = new_middle + 1;
                                             }
                                         }
                                         catch (...)
@@ -83,39 +81,32 @@ namespace pitchstream
                                     }
                                     if (break_condition)
                                         break;
-                                }
-                             //std::cerr << "Exiting thread " << thread_id << std::endl;
-
-                            });
+                                } });
 
         wt.run_with_children(num_threads);
         io.process_input([&](const char *B, const char *E)
                          {
-
                              static const int COMMON_ORDER_ID_OFFSET = 10;
                              static const int COMMON_ORDER_ID_LENGTH = 12;
                              int thread_id =
                                  std::accumulate(B + COMMON_ORDER_ID_OFFSET,
                                                  B + COMMON_ORDER_ID_OFFSET + COMMON_ORDER_ID_LENGTH,
-                                                 0)% num_threads;
+                                                 0) %
+                                 num_threads;
 
-
-                             thread_data[thread_id].pre_input.append(B,E);
-                             thread_data[thread_id].pre_input+= '\n';
+                             thread_data[thread_id].pre_input.append(B, E);
+                             thread_data[thread_id].pre_input += '\n';
 
                              if (thread_data[thread_id].pre_input.size() > multistring_length)
-                             {                                     
+                             {
 
                                  {
                                      std::unique_lock<std::mutex> lock(thread_data[thread_id].queue_mutex);
 
                                      thread_data[thread_id].inputs.emplace_back(move(thread_data[thread_id].pre_input));
-
                                  }
                                  thread_data[thread_id].mutex_condition.notify_one();
                              }
-
-
                          });
         // end of file, send empty to each thread to terminate
 
@@ -124,7 +115,7 @@ namespace pitchstream
 
             {
                 std::unique_lock<std::mutex> lock(thread_data[i].queue_mutex);
-thread_data[i].inputs.emplace_back(move(thread_data[i].pre_input));
+                thread_data[i].inputs.emplace_back(move(thread_data[i].pre_input));
 
                 thread_data[i].inputs.push_back(std::string());
             }
@@ -133,13 +124,11 @@ thread_data[i].inputs.emplace_back(move(thread_data[i].pre_input));
 
         wt.join_with_children();
 
-          for (int i = 1; i != num_threads; ++i) {
+        for (int i = 1; i != num_threads; ++i)
+        {
             thread_data[0].a.add(thread_data[i].a);
-          }
+        }
         format_summary(std::cout, thread_data[0].a.generate_summary_n(10));
-
-
-        
     }
 
     void process_input(pitchstream::io_engine &io)
@@ -161,7 +150,7 @@ int main(int argc, char **argv)
     {
         if (std::string(argv[1]) == "-aio")
         {
-            ioe.reset(new pitchstream::io_engine_aio(0, 1024 * 32, 16));
+            ioe.reset(new pitchstream::io_engine_aio(0, 1024 * 32, 2));
         }
     }
 
