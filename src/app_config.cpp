@@ -76,6 +76,12 @@ namespace pitchstream
                 {
                     threads = std::thread::hardware_concurrency();
                 }
+                else if (any_of(next(it), argument.end(), [](char c){return !isdigit(c);})) {
+
+                    std::cerr << "Not a valid number: " << std::string(next(it), argument.end())
+                              << std::endl;
+                    return (-1);
+                }
                 else
                 {
                     threads = stoi(std::string(next(it), argument.end()));
@@ -101,6 +107,18 @@ namespace pitchstream
                 else
                 {
                     auto comma = std::find(argparms.begin(), argparms.end(), ',');
+                    if (std::any_of(next(argparms.begin()), comma, [](char c){return !isdigit(c);})) {
+
+                        std::cerr << "Not a valid number: " << std::string(next(argparms.begin()), comma)
+                                  << std::endl;
+                        return (-1);
+                    }
+                    if (std::any_of(next(comma), argparms.end(), [](char c){return !isdigit(c);})) {
+
+                        std::cerr << "Not a valid number: " << std::string(next(comma), argparms.end())
+                                  << std::endl;
+                        return (-1);
+                    }
 
                     int bufsz = stoi(std::string(next(argparms.begin()), comma));
                     int inflight;

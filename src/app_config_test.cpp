@@ -77,6 +77,27 @@ namespace pitchstream
             EXPECT_EQ(dynamic_cast<io_engine_aio*>(config.get_io_engine().get())->get_max_ios_inflight(), 6);
         }
 
+        TEST_F(app_config_test, test_incorrect_aio_spec_point)
+        {
+            std::vector<const char*> args({"APPNAME", "-aio=2.6"});
+            app_config config;
+            EXPECT_NE(0, config.parse_command_line(args.size(), &args[0]));
+        }
+
+        TEST_F(app_config_test, test_incorrect_aio_spec_first)
+        {
+            std::vector<const char*> args({"APPNAME", "-aio=2f,6"});
+            app_config config;
+            EXPECT_NE(0, config.parse_command_line(args.size(), &args[0]));
+        }
+        
+        TEST_F(app_config_test, test_incorrect_aio_spec_second)
+        {
+            std::vector<const char*> args({"APPNAME", "-aio=2,-6"});
+            app_config config;
+            EXPECT_NE(0, config.parse_command_line(args.size(), &args[0]));
+        }
+
         TEST_F(app_config_test, test_arguments_ioe_aio_only_buffer_size)
         {
             std::vector<const char*> args({"APPNAME", "-aio=16"});
