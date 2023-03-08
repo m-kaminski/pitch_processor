@@ -1,10 +1,10 @@
 #include <iostream>
 #include <string>
 #include <fstream>
-#include "summary_fotmatter.h"
-#include "pitch_message.h"
-#include "pitch_decoder.h"
-#include "event_accumulator.h"
+#include "pitch/summary_fotmatter.h"
+#include "pitch/pitch_message.h"
+#include "pitch/pitch_decoder.h"
+#include "pitch/event_accumulator.h"
 
 
 #include <iterator>
