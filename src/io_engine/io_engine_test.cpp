@@ -17,12 +17,12 @@ namespace pitchstream
 
         TEST_F(io_engine_test, instantiate_ios)
         {
-            std::unique_ptr<pitchstream::io_engine> ioe(new pitchstream::io_engine_ios);
+            std::unique_ptr<pitchstream::io_engine> ioe(new pitchstream::io_engine_ios(std::cin));
             EXPECT_NE(ioe.get(), nullptr);
         }
         TEST_F(io_engine_test, instantiate_aio)
         {
-            std::unique_ptr<pitchstream::io_engine> ioe(new pitchstream::io_engine_aio);
+            std::unique_ptr<pitchstream::io_engine> ioe(new pitchstream::io_engine_aio(0, 16,2));
             EXPECT_NE(ioe.get(), nullptr);
         }
 

@@ -16,8 +16,9 @@ namespace pitchstream
     {
         std::ios_base::sync_with_stdio(false);
         std::cin.tie(NULL);
+
         std::string s;
-        while (std::getline(std::cin, s))
+        while (std::getline(this->input_stream, s))
         {
             // for each event
             handler(&*s.begin(), &*(s.begin() + s.size()) );

@@ -29,12 +29,12 @@ namespace pitchstream
 
 int main(int argc, char **argv)
 {
-    std::unique_ptr<pitchstream::io_engine> ioe(new pitchstream::io_engine_ios);
+    std::unique_ptr<pitchstream::io_engine> ioe(new pitchstream::io_engine_ios(std::cin));
 
     if (argc > 1) {
         if (std::string(argv[1])=="aio") {
             std::cout << "using asynchronous IO" << std::endl;
-            ioe.reset(new pitchstream::io_engine_aio);
+            ioe.reset(new pitchstream::io_engine_aio(0, 1024*32, 16));
         }
 
     }

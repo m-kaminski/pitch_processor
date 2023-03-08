@@ -3,13 +3,12 @@
 #include <string>
 #include <fstream>
 
-
 #include <iterator>
 
 #include "io_engine.h"
 #include "io_engine_aio.h"
 
-#include <array>
+#include <vector>
 #include <fcntl.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -23,9 +22,15 @@
 #include <algorithm>
 #include <sched.h>
 
-
 namespace pitchstream
 {
+
+    io_engine_aio::io_engine_aio(int _input_fd, int _buffer_size, int _num_ios_inflight)
+        : input_fd(_input_fd),
+          buffer_size(_buffer_size),
+          num_ios_inflight(_num_ios_inflight)
+    {
+    }
 
     struct io_request
     {
@@ -44,12 +49,11 @@ namespace pitchstream
      * IOS, 42.31
      */
 
-    void io_engine_aio::process_input(io_engine::line_handler handler) {
+    void io_engine_aio::process_input(io_engine::line_handler handler)
+    {
 
-        const int num_ios_inflight = 8;
-        const int buf_sz = 1024*64;
         int cur_io = 0;
-        std::array<io_request, num_ios_inflight> io_pool;
+        std::vector<io_request> io_pool(num_ios_inflight);
         int line_count = 0;
 
         int ios_inflight = 0;
@@ -57,12 +61,12 @@ namespace pitchstream
 
         for (int i = 0; i != num_ios_inflight; ++i)
         {
-            io_pool[i].iobuf.reset(new char[buf_sz]);
-            io_pool[i].cb.aio_nbytes = buf_sz;
+            io_pool[i].iobuf.reset(new char[buffer_size]);
+            io_pool[i].cb.aio_nbytes = buffer_size;
             io_pool[i].cb.aio_reqprio = 0;
             io_pool[i].cb.aio_fildes = 0; // stdin
             io_pool[i].cb.aio_buf = io_pool[i].iobuf.get();
-            io_pool[i].cb.aio_offset = i*buf_sz;
+            io_pool[i].cb.aio_offset = i * buffer_size;
             io_pool[i].cb.aio_sigevent.sigev_notify = SIGEV_NONE;
         }
 
@@ -99,29 +103,34 @@ namespace pitchstream
                 break;
             }
 
-            char * begin = io_pool[cur_io].iobuf.get();
-            char * end = io_pool[cur_io].iobuf.get() + aio_res;
+            char *begin = io_pool[cur_io].iobuf.get();
+            char *end = io_pool[cur_io].iobuf.get() + aio_res;
 
             int cctr = 0;
-            while (begin < end) {
-                char * eln  = std::find(begin, end, '\n');
+            while (begin < end)
+            {
+                char *eln = std::find(begin, end, '\n');
 
-                if (eln == end ) {
+                if (eln == end)
+                {
                     // no new line; done for this input
                     carry_line += std::string(begin, end);
                     break;
                 }
-                if (carry_line.size()) { // there is a carry line from previous input processing
+                if (carry_line.size())
+                { // there is a carry line from previous input processing
                     carry_line += std::string(begin, eln);
-                    handler(&*carry_line.begin(), &*(carry_line.begin() + carry_line.size()) );
+                    handler(&*carry_line.begin(), &*(carry_line.begin() + carry_line.size()));
                     carry_line.erase();
-                } else {
+                }
+                else
+                {
                     handler(begin, eln);
                 }
                 begin = eln + 1;
             }
 
-            io_pool[cur_io].cb.aio_offset += num_ios_inflight*buf_sz;
+            io_pool[cur_io].cb.aio_offset += num_ios_inflight * buffer_size;
             int rr = aio_read(&io_pool[cur_io].cb);
 
             cur_io = (cur_io + 1) % num_ios_inflight;
