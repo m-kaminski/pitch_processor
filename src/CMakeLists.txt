@@ -31,5 +31,5 @@ target_link_libraries(summary_formatter_test GTest::gtest_main)
 gtest_discover_tests(summary_formatter_test)
 
 
-add_executable(pitch main.cpp summary_formatter.cpp event_accumulator.cpp)
+add_executable(pitch main.cpp summary_formatter.cpp io_engine/io_engine_ios.cpp io_engine/io_engine_aio.cpp event_accumulator.cpp)
 target_link_libraries(pitch rt)
