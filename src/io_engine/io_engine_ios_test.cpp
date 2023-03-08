@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <fstream>
 #include <iterator>
-
+#include <thread>
 
 namespace pitchstream
 {
@@ -32,20 +32,53 @@ namespace pitchstream
             // create an output file stream
             std::ofstream fifofile(tmpfile);
             sv solution({"foo", "bar", "baz"});
-            std::copy(solution.begin(), solution.end(), std::ostream_iterator<std::string>(fifofile,"\n"));
+            std::copy(solution.begin(), solution.end(), std::ostream_iterator<std::string>(fifofile, "\n"));
             fifofile.close();
             // create input file stream and invoke reader
             sv output;
             std::ifstream infile(tmpfile);
             std::unique_ptr<pitchstream::io_engine> ioe(new pitchstream::io_engine_ios(infile));
 
-            ioe->process_input([&](const char *b, const char *e){output.push_back(std::string(b,e));});
+            ioe->process_input([&](const char *b, const char *e)
+                               { output.push_back(std::string(b, e)); });
 
             EXPECT_NE(ioe.get(), nullptr);
             EXPECT_EQ(output, solution);
             unlink(file_template);
         }
 
+        TEST_F(io_engine_ios_test, read_fifo)
+        {
+            using sv = std::vector<std::string>;
+            char file_template[] = "/tmp/pitchstream_io_engine_test_XXXXXX";
+            mkstemp(file_template);
+            std::string tmpfile(file_template);
+            mkfifo(file_template, 0666);
+
+            sv solution({"foo", "bar", "baz"});
+
+            std::thread writer([&]()
+                               {
+                // create an output file stream
+                std::ofstream fifofile(tmpfile);
+                std::copy(solution.begin(), solution.end(), std::ostream_iterator<std::string>(fifofile,"\n"));
+                fifofile.close(); });
+            // create input file stream and invoke reader
+            sv output;
+
+            std::thread reader([&]()
+                               {
+                std::ifstream infile(tmpfile);
+                std::unique_ptr<pitchstream::io_engine> ioe(new pitchstream::io_engine_ios(infile));
+                EXPECT_NE(ioe.get(), nullptr);
+
+                ioe->process_input([&](const char *b, const char *e)
+                    {output.push_back(std::string(b,e));}); });
+            reader.join();
+            writer.join();
+            EXPECT_EQ(output, solution);
+            unlink(file_template);
+        }
     }
 }
 
