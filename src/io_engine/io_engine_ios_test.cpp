@@ -26,7 +26,7 @@ namespace pitchstream
         {
             using sv = std::vector<std::string>;
             char file_template[] = "/tmp/pitchstream_io_engine_test_XXXXXX";
-            mkstemp(file_template);
+            mktemp(file_template);
             std::string tmpfile(file_template);
 
             // create an output file stream
@@ -52,7 +52,7 @@ namespace pitchstream
         {
             using sv = std::vector<std::string>;
             char file_template[] = "/tmp/pitchstream_io_engine_test_XXXXXX";
-            mkstemp(file_template);
+            mktemp(file_template);
             std::string tmpfile(file_template);
             mkfifo(file_template, 0666);
 
