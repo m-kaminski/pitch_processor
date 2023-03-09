@@ -39,7 +39,6 @@ namespace pitchstream
         "                        shouldn\'t be set above 2 for pipes)\n"
 #endif
         "-ios : use io-streams for input (default option)\n"
-        "-verbose : print options selected\n"
         "-nr[=N] : number of symbols to calculate (default: 10)\n"
         "-v : print info about applied options (in order)\n"
         "-h : display this very help message\n\n"

@@ -71,7 +71,6 @@ Program accepts following commandline options:
                         (kB) and maximum number of requests in flight (this
                         shouldn't be set above 2 for pipes)
 -ios : use io-streams for input (default option)
--verbose : print options selected
 -nr[=N] : number of symbols to calculate (default: 10)
 -v : print info about applied options (in order)
 
