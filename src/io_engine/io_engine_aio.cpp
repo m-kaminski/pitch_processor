@@ -33,6 +33,7 @@ namespace pitchstream
     struct io_request
     {
         aiocb cb;
+        bool inflight;
         std::unique_ptr<char> iobuf;
     };
 
@@ -62,7 +63,7 @@ namespace pitchstream
             io_pool[i].cb.aio_reqprio = 0;
             io_pool[i].cb.aio_fildes = input_fd; // stdin
             io_pool[i].cb.aio_buf = io_pool[i].iobuf.get();
-            io_pool[i].cb.aio_offset =  buffer_size * i;
+            io_pool[i].cb.aio_offset = buffer_size * i;
             io_pool[i].cb.aio_sigevent.sigev_notify = SIGEV_NONE;
         }
 
@@ -80,23 +81,29 @@ namespace pitchstream
                     {
                         throw std::runtime_error(strerror(errno));
                     }
+                    io_pool[i].inflight = true;
                 }
                 ios_inflight += 2;
             }
 
-            while (int error = aio_error(&io_pool[cur_io].cb)) {
+            while (int error = aio_error(&io_pool[cur_io].cb))
+            {
                 if (error == EINPROGRESS)
                     sched_yield(); // busy wait;
-                else if (error == 0) {
+                else if (error == 0)
+                {
                     break;
-                } else if (error > 0) {
+                }
+                else if (error > 0)
+                {
                     std::cerr << "failing io " << cur_io << " on file " << io_pool[cur_io].cb.aio_fildes << std::endl;
-                    throw std::runtime_error(strerror(error));                   
+                    throw std::runtime_error(strerror(error));
                 }
             }
             int aio_res = aio_return(&io_pool[cur_io].cb);
             if (aio_res == 0)
             {
+                io_pool[cur_io].inflight = false;
                 // end of file
                 break;
             }
@@ -119,12 +126,10 @@ namespace pitchstream
                 {
                     // no new line; done for this input
                     carry_line += std::string(begin, end);
-
                     break;
                 }
                 if (carry_line.size())
                 { // there is a carry line from previous input processing
-
 
                     carry_line += std::string(begin, eln);
 
@@ -140,8 +145,29 @@ namespace pitchstream
 
             io_pool[cur_io].cb.aio_offset += buffer_size * num_ios_inflight;
             int rr = aio_read(&io_pool[cur_io].cb);
+            io_pool[cur_io].inflight = true;
 
             cur_io = (cur_io + 1) % num_ios_inflight;
+        }
+
+        if (aio_cancel(input_fd, 0) != AIO_NOTCANCELED)
+        {
+            //Attempt to cancel AIO requests failed
+
+            bool any_in_progress = false;
+            do
+            {
+                for (int i = 0; i != num_ios_inflight; ++i)
+                {
+                    int error = aio_error(&io_pool[cur_io].cb);
+                    if (error == EINPROGRESS)
+                        any_in_progress = true;
+                }
+                if (any_in_progress)
+                    sched_yield();
+            } while (any_in_progress);
+            // Attempt to cancel AIO requests completed (can't exit if IOs inflight,
+            // as buffers will be addressed after free)
         }
 
         if (carry_line.size())

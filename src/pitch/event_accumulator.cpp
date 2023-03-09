@@ -66,7 +66,7 @@ namespace pitchstream
     {
         auto it = live_orders.find(input->get_order_id());
         if (it == live_orders.end())
-            return;
+            throw std::out_of_range("canceling order that does not exist");
         if (it->second->get_shares_count() < input->get_shares_count())
         {
             throw std::out_of_range("canceling more shares than in live order");
@@ -82,10 +82,10 @@ namespace pitchstream
         uint32_t num_exec = input->get_shares_count();
         auto it = live_orders.find(input->get_order_id());
         if (it == live_orders.end())
-            return;
+            throw std::out_of_range("executing order that does not exist");
         if (it->second->get_shares_count() < num_exec)
         {
-            throw std::out_of_range("canceling more shares than in live order");
+            throw std::out_of_range("executing more shares than in live order");
         }
         counters[it->second->get_stock_symbol()] += num_exec;
         if (!it->second->subtract_shares_count(num_exec))

@@ -2,6 +2,7 @@
 #include <string>
 #include <fstream>
 #include <iterator>
+#include <cassert>
 
 #include "../pitch/summary_fotmatter.h"
 #include "../pitch/pitch_message.h"
@@ -15,24 +16,35 @@ namespace pitchstream
 
     void execution_policy_multi_threaded::run()
     {
+        assert(thread_data.size() == num_threads);
         worker_thread wt;
 
         for (int i = 0; i != num_threads; ++i)
             thread_data[i].pre_input.reserve(multistring_length + 100);
+
         wt.set_run_function([&](worker_thread *w)
                             { this->process_input_stage2(w); });
 
         wt.run_with_children(num_threads);
         ioe->process_input([&](const char *B, const char *E)
                            { this->process_input_stage1(B, E); });
-        // end of file, send empty to each thread to terminate
 
         for (int i = 0; i != num_threads; ++i)
         {
             {
+                std::string empty("");
                 std::unique_lock<std::mutex> lock(thread_data[i].queue_mutex);
                 thread_data[i].inputs.emplace_back(move(thread_data[i].pre_input));
-                thread_data[i].inputs.push_back(std::string());
+            }
+            thread_data[i].mutex_condition.notify_one();
+        }
+
+        // end of file, send empty to each thread to terminate
+        for (int i = 0; i != num_threads; ++i)
+        {
+            {
+                std::string empty("");
+                thread_data[i].inputs.push_back(move(empty));
             }
             thread_data[i].mutex_condition.notify_one();
         }
@@ -46,15 +58,28 @@ namespace pitchstream
         }
         format_summary(std::cout, thread_data[0].a.generate_summary_n(num_results));
 
-        if (error_counter)
+        if (parse_error_counter || processing_error_counter || lines_skipped)
         {
-            std::cerr << error_counter << " errors detected and ignored" << std::endl;
+            if (parse_error_counter)
+            {
+                std::cerr << parse_error_counter << " parse errors detected and ignored" << std::endl;
+            }
+            if (processing_error_counter)
+            {
+                std::cerr << processing_error_counter << " parse errors detected and ignored" << std::endl;
+            }
+            if (lines_skipped)
+            {
+                std::cerr << lines_skipped << " input lines skipped" << std::endl;
+            }
         }
     }
 
     void execution_policy_multi_threaded::process_input_stage1(const char *begin, const char *end)
     {
-        if (end - begin < COMMON_ORDER_ID_OFFSET + COMMON_ORDER_ID_LENGTH) {
+        if (end - begin < COMMON_ORDER_ID_OFFSET + COMMON_ORDER_ID_LENGTH)
+        {
+                            lines_skipped++;
             return; /* string too short, no order ID  - ignore silently */
         }
 
@@ -107,14 +132,27 @@ namespace pitchstream
                 while (middle != end)
                 {
                     auto new_middle = std::find(middle, end, '\n');
+
+                    pitch_decoder::p_message event;
                     try
                     {
-                        thread_data[thread_id].a.process_message(std::move(
-                            pitch_decoder::decode(middle, new_middle)));
+                        event = pitch_decoder::decode(middle, new_middle);
+                        if (!event)
+                        {
+                            lines_skipped++;
+                        }
                     }
                     catch (...)
                     {
-                        error_counter++;
+                        parse_error_counter++;
+                    }
+                    try
+                    {
+                        thread_data[thread_id].a.process_message(std::move(event));
+                    }
+                    catch (...)
+                    {
+                        processing_error_counter++;
                     }
                     middle = new_middle + 1;
                 }

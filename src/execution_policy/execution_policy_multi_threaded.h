@@ -3,10 +3,11 @@
 
 #include <deque>
 #include <mutex>
-
 #include <condition_variable>
 #include <numeric>
 #include <cassert>
+#include <atomic>
+
 #include "../pitch/event_accumulator.h"
 #include "../pitch/pitch_format_constants.h"
 #include "execution_policy.h"
@@ -21,8 +22,10 @@ namespace pitchstream
         num_threads(_num_threads), 
         multistring_length(1024 * 16),
         thread_data(_num_threads),
-        error_counter(0) {}
-
+        parse_error_counter(0),
+        processing_error_counter(0),
+        lines_skipped(0){}
+        
         virtual void run();
         int get_num_threads() {
             return num_threads;
@@ -39,7 +42,11 @@ namespace pitchstream
         int num_threads;
         int multistring_length;
         std::vector<thread_status> thread_data;
-        int error_counter;
+
+        std::atomic<std::uint64_t> parse_error_counter;
+        std::atomic<std::uint64_t> processing_error_counter;
+        std::atomic<std::uint64_t> lines_skipped;
+
         void process_input_stage1(const char *begin, const char *end);
 
         void process_input_stage2(worker_thread *w);

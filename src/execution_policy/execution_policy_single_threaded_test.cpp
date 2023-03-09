@@ -15,6 +15,7 @@ namespace pitchstream
     namespace
     {
         const std::string SAMPLE_DATA_PATH = "../../sample_data/pitch_example_data";
+        const std::string SAMPLE_ERROROUS_PATH = "../../sample_data/pitch_errorous_data";
 
         class execution_policy_single_threaded_test : public ::testing::Test
         {
@@ -49,6 +50,25 @@ namespace pitchstream
                                     ));
         }
 
+        TEST_F(execution_policy_single_threaded_test, error_handling)
+        {
+            std::ifstream ifile(SAMPLE_ERROROUS_PATH);
+            std::unique_ptr<pitchstream::io_engine> ioe(new pitchstream::io_engine_ios(ifile));
+            std::unique_ptr<pitchstream::execution_policy> ep(new execution_policy_single_threaded);
+            testing::internal::CaptureStderr();
+
+            ep->set_io_engine(ioe.get());
+            ep->set_num_results(10);
+            ep->run();
+            ep.reset();
+            ifile.close();
+            std::cerr.flush();
+            std::string text = testing::internal::GetCapturedStderr();
+
+            EXPECT_EQ(text, std::string("1 parse errors detected and ignored\n"
+                                        "5 parse errors detected and ignored\n"
+                                        "15 input lines skipped\n"));
+        }
     }
 }
 

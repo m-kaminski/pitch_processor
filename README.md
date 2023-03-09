@@ -1,13 +1,12 @@
 # PITCH
 
-Program takes stream of messages in PITCH format on standard input and summarizes most
-frequently executed stocks on standard output.
-
-
+Program takes stream of messages in PITCH format on standard input and 
+summarizes most frequently executed stocks on standard output.
 
 # BUILD
 
-To build and execute in RHEL/CentOS operating system you will need to install the following
+To build and execute in RHEL/CentOS operating system you will need to 
+install the following
 
 1. C++ development tools
 ```
@@ -53,8 +52,8 @@ By default program uses IO Streams for reading input data, to use AIO instead us
 ./build/pitch_processor -aio < ../pitch_example_data
 ```
 
-If you wish to run minimalist version, it operates the same, except, that certain options
-including particularly -aio and -mt, are removed.
+If you wish to run minimalist version, it operates the same, except, that 
+certain options including particularly -aio and -mt, are removed.
 
 # OPTIONS
 
@@ -113,7 +112,27 @@ I have used following testing strategies to ensure quality of the program
 2. Tool called Valgrind is used to verify for lack of memory leaks
     and bad memory accesses
 3. Performance is evaluated using tool called time
-4. Manual testing is performed to determine other areas for testing
+4. Call-level proviling was performed using the tool called Callgrind,
+    to find possible execution bottlenecks
+5. Manual testing is performed to determine other areas for testing
+
+# ERROR HANDLING
+
+5 specific classes of errors are handled in this program
+
+1. Unknown messages/lines that are too long or too short, are simply ignored
+2. Parse errors, such as 36-bit integers having characters outside 0...9,A...Z
+   range, are processed through exceptions, i.e. std::invalid_argument
+3. Logic errors such as attempting to execute more shares than there are in
+   active order, are processed through exceptions too, i.e. std::out_of_range
+4. I/O errors such as failures to read are not retried and are handled through 
+   std::runtime_error
+5. Incorrect command-line arguments are reported and result in termination
+   of program and help message being printed
+
+System errors such as 4. are fatal and result in program being terminated.
+Errors from categories 1-3 are not reported individually but are counted and
+their number is printed to standard output
 
 # PERFORMANCE
 
