@@ -90,13 +90,13 @@ of executed shares to numbers of shares executed.
 Calculating summaries of trades is implemented in event_accumulator class
 (src/pitch/event_accumulator.h).
 
-For Add Order message, a message is deposited in live_orders table
-For Cancel Order, number of shares outstanding is decremented through
+* For Add Order message, a message is deposited in live_orders table
+* For Cancel Order, number of shares outstanding is decremented through
     live_orders table and entry is erased if number of shares drops to 0;
     (if number drops below 0, exception out_of_range is thrown)
-For Order Executed, number of shares is also decremented from live_orders.
+* For Order Executed, number of shares is also decremented from live_orders.
     but also it is added to counters table of executed orders.
-For Trade message, number of shares is added to counters table as well.
+* For Trade message, number of shares is added to counters table as well.
 
 To calculate summary, std::sort or std::partial_sort is invoked.
 
