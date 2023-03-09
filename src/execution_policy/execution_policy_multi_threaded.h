@@ -12,6 +12,7 @@
 #include "../pitch/pitch_format_constants.h"
 #include "execution_policy.h"
 #include "worker_thread.h"
+#include "error_counter.h"
 namespace pitchstream
 {
 
@@ -21,10 +22,7 @@ namespace pitchstream
         execution_policy_multi_threaded(int _num_threads = 32) : 
         num_threads(_num_threads), 
         multistring_length(1024 * 16),
-        thread_data(_num_threads),
-        parse_error_counter(0),
-        processing_error_counter(0),
-        lines_skipped(0){}
+        thread_data(_num_threads){}
         
         virtual void run();
         int get_num_threads() {
@@ -44,9 +42,8 @@ namespace pitchstream
         int multistring_length;
         std::vector<thread_status> thread_data;
 
-        std::atomic<std::uint64_t> parse_error_counter;
-        std::atomic<std::uint64_t> processing_error_counter;
-        std::atomic<std::uint64_t> lines_skipped;
+        error_counter<std::atomic<std::uint64_t>> errors;
+
 
         void process_input_stage1(const char *begin, const char *end);
 

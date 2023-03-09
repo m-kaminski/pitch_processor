@@ -28,3 +28,10 @@ add_executable(execution_policy_multi_threaded_test
 target_compile_options(execution_policy_single_threaded_test PRIVATE -g -O0 --coverage -fprofile-arcs -ftest-coverage)
 target_link_libraries(execution_policy_multi_threaded_test GTest::gtest_main pthread gcov)
 gtest_discover_tests(execution_policy_multi_threaded_test pthread)
+
+
+
+add_executable(error_counter_test error_counter_test.cpp)
+target_compile_options(error_counter_test PRIVATE -g -O0 --coverage -fprofile-arcs -ftest-coverage)
+target_link_libraries(error_counter_test GTest::gtest_main gcov)
+gtest_discover_tests(error_counter_test)

@@ -65,8 +65,9 @@ namespace pitchstream
             std::cerr.flush();
             std::string text = testing::internal::GetCapturedStderr();
 
-            EXPECT_EQ(text, std::string("1 parse errors detected and ignored\n"
-                                        "5 parse errors detected and ignored\n"
+            EXPECT_EQ(text, std::string("Following errors were detected during execution:\n"
+                                        "1 parse errors detected and ignored\n"
+                                        "5 processing errors detected and ignored\n"
                                         "15 input lines skipped\n"));
         }
     }

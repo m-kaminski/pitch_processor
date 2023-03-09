@@ -59,28 +59,16 @@ namespace pitchstream
         }
         format_summary(std::cout, thread_data[0].a.generate_summary_n(num_results));
 
-        if (parse_error_counter || processing_error_counter || lines_skipped)
-        {
-            if (parse_error_counter)
-            {
-                std::cerr << parse_error_counter << " parse errors detected and ignored" << std::endl;
-            }
-            if (processing_error_counter)
-            {
-                std::cerr << processing_error_counter << " parse errors detected and ignored" << std::endl;
-            }
-            if (lines_skipped)
-            {
-                std::cerr << lines_skipped << " input lines skipped" << std::endl;
-            }
-        }
+        if (errors.has_errors())
+            errors.print_errors();
+            
     }
 
     void execution_policy_multi_threaded::process_input_stage1(const char *begin, const char *end)
     {
         if (end - begin < COMMON_ORDER_ID_OFFSET + COMMON_ORDER_ID_LENGTH)
         {
-            lines_skipped++;
+            errors.lines_skipped++;
             return; /* string too short, no order ID  - ignore silently */
         }
 
@@ -140,12 +128,12 @@ namespace pitchstream
                         event = pitch_decoder::decode(middle, new_middle);
                         if (!event)
                         {
-                            lines_skipped++;
+                            errors.lines_skipped++;
                         }
                     }
                     catch (...)
                     {
-                        parse_error_counter++;
+                        errors.parse_error_counter++;
                     }
                     try
                     {
@@ -153,7 +141,7 @@ namespace pitchstream
                     }
                     catch (...)
                     {
-                        processing_error_counter++;
+                        errors.processing_error_counter++;
                     }
                     middle = new_middle + 1;
                 }
