@@ -5,6 +5,9 @@ cd "$(dirname "$0")"
 cmake -S src -B build
 cmake --build build -j
 
+#cleanup gcov data
+find build/ -name '*.gcda' -exec rm {} \;
+
 if [ $? -ne 0 ]
 then
     echo build failed
