@@ -31,6 +31,14 @@ Build script provided creates executable in ./build directory
 ./build.sh
 ```
 
+If you don't feel like installing CMake, gtest, or dealing with threads
+and asynchronous I/O, for your convenience there is second build script which
+generates simple minimalist build with all of these dependencies removed
+
+```
+./build-minimalist.sh
+```
+
 # EXECUTE
 
 To execute program, run following command:
@@ -44,6 +52,9 @@ By default program uses IO Streams for reading input data, to use AIO instead us
 ```
 ./build/pitch_processor -aio < ../pitch_example_data
 ```
+
+If you wish to run minimalist version, it operates the same, except, that certain options
+including particularly -aio and -mt, are removed.
 
 # OPTIONS
 

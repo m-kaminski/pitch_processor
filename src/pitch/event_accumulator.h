@@ -4,7 +4,9 @@
 #include <vector>
 #include <unordered_map>
 #include <utility>
+#ifndef MINIMALIST
 #include <gtest/gtest_prod.h>
+#endif
 
 #include "pitch_message.h"
 namespace pitchstream
@@ -29,13 +31,14 @@ namespace pitchstream
 
         // count of trades executed per symbol
         std::unordered_map<std::string, uint64_t> counters;
-
         void process_add(p_message &&input);
         void process_cancel(p_message &&input);
         void process_executed(p_message &&input);
         void process_trade(p_message &&input);
+#ifndef MINIMALIST
         FRIEND_TEST(event_accumulator_test, full_cancel_erases_open);
         FRIEND_TEST(event_accumulator_test, full_execution_erases_open);
+#endif
     };
 }
 #endif

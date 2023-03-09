@@ -9,10 +9,8 @@
 #include "pitch/event_accumulator.h"
 #include "io_engine/io_engine.h"
 #include "io_engine/io_engine_ios.h"
-#include "io_engine/io_engine_aio.h"
 #include "execution_policy/execution_policy.h"
 #include "execution_policy/execution_policy_single_threaded.h"
-#include "execution_policy/execution_policy_multi_threaded.h"
 #include "app_config.h"
 
 int main(int argc, char **argv)

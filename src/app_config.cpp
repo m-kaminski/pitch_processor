@@ -10,11 +10,16 @@
 #include "pitch/event_accumulator.h"
 #include "io_engine/io_engine.h"
 #include "io_engine/io_engine_ios.h"
-#include "io_engine/io_engine_aio.h"
+
 #include "execution_policy/execution_policy.h"
 #include "execution_policy/execution_policy_single_threaded.h"
-#include "execution_policy/execution_policy_multi_threaded.h"
 #include "app_config.h"
+
+#ifndef MINIMALIST
+#include <thread>
+#include "execution_policy/execution_policy_multi_threaded.h"
+#include "io_engine/io_engine_aio.h"
+#endif
 
 namespace pitchstream
 {
@@ -24,16 +29,24 @@ namespace pitchstream
         "Order Execute, Order Cancel, Trade) and calculates list of most frequently\n"
         "executed symbols\n\n"
         "Program accepts following commandline options:\n"
+#ifndef MINIMALIST
         "-mt[=N] : multi-threaded execution. If =N given, specific number of threads\n"
+#endif
         "-st : single-threaded execution (default)\n"
+#ifndef MINIMALIST
         "-aio[=bufsz,inflight] : use Linux AIO for input. Can select buffer size\n"
         "                        (kB) and maximum number of requests in flight (this\n"
         "                        shouldn\'t be set above 2 for pipes)\n"
+#endif
         "-ios : use io-streams for input (default option)\n"
         "-verbose : print options selected\n"
         "-nr[=N] : number of symbols to calculate (default: 10)\n"
-        "-v : print info about applied options (in order)\n\n"
+        "-v : print info about applied options (in order)\n"
         "-h : display this very help message\n\n"
+#ifdef MINIMALIST
+        "This is MINIMALIST build of the software. Some features (mainly Linux AIO and \n"
+        "threads) are disabled\n\n"
+#endif
         "(c) Maciej (Matt) Kaminski\n");
 
     void app_config::print_help(const char *name)
@@ -41,11 +54,11 @@ namespace pitchstream
         std::cout << name << "\n"
                   << help_message << std::endl;
     }
-    int app_config::parse_command_line(int argc, const char * const *argv)
+    int app_config::parse_command_line(int argc, const char *const *argv)
     {
-        int thread_selections=0;
-        int io_selections=0;
-        int result_selections=0;
+        int thread_selections = 0;
+        int io_selections = 0;
+        int result_selections = 0;
 
         std::stringstream applied;
         bool verbose = false;
@@ -76,13 +89,20 @@ namespace pitchstream
             }
             else if (argname == "-mt")
             {
+#ifdef MINIMALIST
+                std::cerr << "Asynchronous I/O and multithreading disabled in MINIMALIST build"
+                          << std::endl;
+                return (-1);
 
+#else
                 int threads = 0;
                 if (argparms.empty())
                 {
                     threads = std::thread::hardware_concurrency();
                 }
-                else if (any_of(next(it), argument.end(), [](char c){return !isdigit(c);})) {
+                else if (any_of(next(it), argument.end(), [](char c)
+                                { return !isdigit(c); }))
+                {
 
                     std::cerr << "Not a valid number: " << std::string(next(it), argument.end())
                               << std::endl;
@@ -114,13 +134,17 @@ namespace pitchstream
                 else
                 {
                     auto comma = std::find(argparms.begin(), argparms.end(), ',');
-                    if (std::any_of(next(argparms.begin()), comma, [](char c){return !isdigit(c);})) {
+                    if (std::any_of(next(argparms.begin()), comma, [](char c)
+                                    { return !isdigit(c); }))
+                    {
 
                         std::cerr << "Not a valid number: " << std::string(next(argparms.begin()), comma)
                                   << std::endl;
                         return (-1);
                     }
-                    if (std::any_of(next(comma), argparms.end(), [](char c){return !isdigit(c);})) {
+                    if (std::any_of(next(comma), argparms.end(), [](char c)
+                                    { return !isdigit(c); }))
+                    {
 
                         std::cerr << "Not a valid number: " << std::string(next(comma), argparms.end())
                                   << std::endl;
@@ -139,7 +163,7 @@ namespace pitchstream
                         std::cerr << "Incorrect settings. Need >0 requests, >0 buffer "
                                      "and even number of requests"
                                   << std::endl;
-                        return(-1);
+                        return (-1);
                     }
                     applied << "Configuring AIO with " << bufsz << "kB buffer and "
                             << inflight << " requests in flight.\n";
@@ -147,6 +171,7 @@ namespace pitchstream
                     ioe.reset(new pitchstream::io_engine_aio(0, bufsz, inflight));
                 }
                 io_selections++;
+#endif
             }
             else if (argname == "-ios")
             {
@@ -171,14 +196,16 @@ namespace pitchstream
                 return (-1);
             }
         };
-        if (thread_selections > 1 || io_selections > 1 || result_selections > 1) {
-                std::cerr << "Selected more than one of same option or a set of options\n"
-                             " that is mutually exclusive" 
-                            << std::endl;
-                print_help(argv[0]);
-                return (-1);
+        if (thread_selections > 1 || io_selections > 1 || result_selections > 1)
+        {
+            std::cerr << "Selected more than one of same option or a set of options\n"
+                         " that is mutually exclusive"
+                      << std::endl;
+            print_help(argv[0]);
+            return (-1);
         }
-        if (verbose) {
+        if (verbose)
+        {
             std::cout << applied.str();
         }
         return 0;
