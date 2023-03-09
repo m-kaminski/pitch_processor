@@ -38,6 +38,7 @@ namespace pitchstream
             std::string pre_input;
             std::mutex queue_mutex;
             std::condition_variable mutex_condition;
+            ~thread_status() ;
         };
         int num_threads;
         int multistring_length;

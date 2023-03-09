@@ -16,16 +16,16 @@
 int main(int argc, char **argv)
 {
     // application settings
-    pitchstream::app_config config;
-    int config_res = config.parse_command_line(argc, argv);
+    std::unique_ptr<pitchstream::app_config> config(new pitchstream::app_config);
+    int config_res = config->parse_command_line(argc, argv);
     if (config_res) {
         return config_res > 0 ? 0 : config_res;
     }
 
     // Information parsed from command line
-    std::shared_ptr<pitchstream::io_engine> ioe(config.get_io_engine());
-    std::shared_ptr<pitchstream::execution_policy> ep(config.get_execution_policy());
-    int num_results=config.get_num_results();
+    std::shared_ptr<pitchstream::io_engine> ioe(config->get_io_engine());
+    std::shared_ptr<pitchstream::execution_policy> ep(config->get_execution_policy());
+    int num_results=config->get_num_results();
 
     // set defaults if not set
     if (!ioe)
@@ -39,6 +39,7 @@ int main(int argc, char **argv)
     ep->set_num_results(num_results);
     ep->run();
 
+    config.reset();
     ep.reset(); // first destroy execution policy as it depends on IO engine running
     ioe.reset();
 

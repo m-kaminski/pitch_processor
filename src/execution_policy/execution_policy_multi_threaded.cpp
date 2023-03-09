@@ -31,8 +31,8 @@ namespace pitchstream
 
         for (int i = 0; i != num_threads; ++i)
         {
+            if (thread_data[i].pre_input.size())
             {
-                std::string empty("");
                 std::unique_lock<std::mutex> lock(thread_data[i].queue_mutex);
                 thread_data[i].inputs.emplace_back(move(thread_data[i].pre_input));
             }
@@ -43,6 +43,7 @@ namespace pitchstream
         for (int i = 0; i != num_threads; ++i)
         {
             {
+                std::unique_lock<std::mutex> lock(thread_data[i].queue_mutex);
                 std::string empty("");
                 thread_data[i].inputs.push_back(move(empty));
             }
@@ -79,7 +80,7 @@ namespace pitchstream
     {
         if (end - begin < COMMON_ORDER_ID_OFFSET + COMMON_ORDER_ID_LENGTH)
         {
-                            lines_skipped++;
+            lines_skipped++;
             return; /* string too short, no order ID  - ignore silently */
         }
 
@@ -164,5 +165,13 @@ namespace pitchstream
 
     void execution_policy_multi_threaded::join_results()
     {
+    }
+
+    execution_policy_multi_threaded::thread_status::~thread_status()
+    {
+        std::unique_lock<std::mutex> lock(queue_mutex);
+        if (!inputs.empty()) {
+            std::cerr << "Thread queue is not clean. This may be data corruption" << std::endl;
+        }
     }
 }

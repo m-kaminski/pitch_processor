@@ -35,7 +35,6 @@ namespace pitchstream
         join_with_children(children.size(), children);
 
         children.resize(1);
-
     }
 
     // replace this function to achieve expected behavior
@@ -61,6 +60,7 @@ namespace pitchstream
     void worker_thread::join(worker_thread *other)
     {
         other->p_thread_obj->join();
+        other->p_thread_obj.reset();
     }
 
     void worker_thread::run_with_children(int count, std::vector<p_t> &_worker_vector)
