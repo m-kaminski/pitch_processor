@@ -45,9 +45,12 @@ namespace pitchstream
             thread_data[0].a.add(thread_data[i].a);
         }
         format_summary(std::cout, thread_data[0].a.generate_summary_n(num_results));
+
+        if (error_counter)
+        {
+            std::cerr << error_counter << " errors detected and ignored" << std::endl;
+        }
     }
-
-
 
     void execution_policy_multi_threaded::process_input_stage1(const char *begin, const char *end)
     {
@@ -94,25 +97,23 @@ namespace pitchstream
                     break_condition = true;
                     break;
                 }
-                try
+
+                auto begin = message.begin();
+                auto middle = begin;
+                auto end = message.end();
+                while (middle != end)
                 {
-
-                    auto begin = message.begin();
-                    auto middle = begin;
-                    auto end = message.end();
-                    while (middle != end)
+                    auto new_middle = std::find(middle, end, '\n');
+                    try
                     {
-                        auto new_middle = std::find(middle, end, '\n');
-
                         thread_data[thread_id].a.process_message(std::move(
                             pitch_decoder::decode(middle, new_middle)));
-                        middle = new_middle + 1;
                     }
-                }
-                catch (...)
-                {
-                    std::cerr << "failing on " << message << std::endl;
-                    throw;
+                    catch (...)
+                    {
+                        error_counter++;
+                    }
+                    middle = new_middle + 1;
                 }
             }
             if (break_condition)

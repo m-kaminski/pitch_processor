@@ -134,7 +134,7 @@ AIO (32k,2)  0m8.061s   0m4.040s   0m4.234s   0m4.000s   0m4.183s
 AIO (32k,8)  0m8.116s   0m4.028s   0m3.896s   0m4.118s   0m4.419s
 ```
 (3,5,9 and 17 are total numbers of threads, corresponding to 2/4/8/16
- worker threads and one I/O thread)
+worker threads and one I/O thread)
 
 As it can be observed, benefits of increasing number of working threads
 is diminishing quickly, as problem becomes strictly I/O bound rather than
@@ -146,5 +146,8 @@ to be computed based on OrderID, so that Execute/Cancel commands
 will be processed in the same worker thread as Add Order command for the
 same order. This allows skipping locks on hash table structure, and
 instead keeping distinct data structures between threads, and therefore
-achieve higher thrupur.
+achieve higher thruput.
 
+# CONTACT
+
+If you have any questions, please contact me at maciej.a.kaminski@gmail.com

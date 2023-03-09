@@ -17,8 +17,11 @@ namespace pitchstream
     class execution_policy_multi_threaded : public execution_policy
     {
     public:
-        execution_policy_multi_threaded(int _num_threads = 32) : num_threads(_num_threads), multistring_length(1024 * 16),
-        thread_data(_num_threads) {}
+        execution_policy_multi_threaded(int _num_threads = 32) : 
+        num_threads(_num_threads), 
+        multistring_length(1024 * 16),
+        thread_data(_num_threads),
+        error_counter(0) {}
 
         virtual void run();
         int get_num_threads() {
@@ -35,8 +38,8 @@ namespace pitchstream
         };
         int num_threads;
         int multistring_length;
-
         std::vector<thread_status> thread_data;
+        int error_counter;
         void process_input_stage1(const char *begin, const char *end);
 
         void process_input_stage2(worker_thread *w);
