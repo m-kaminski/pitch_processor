@@ -14,14 +14,15 @@ To build and execute in RHEL/CentOS operating system you will need to install th
 yum install g++ make cmake
 ```
 
-2. Gtest test suite
-```
-yum install gtest gtest-devel
-```
 
-3. You may want to install lib aio (Linux Asynchronous IO)
+2. You may want to install lib aio (Linux Asynchronous IO)
 ```
 yum install libaio libaio-devel
+```
+
+3. Gtest test libraries and gcov to calculate coverage
+```
+yum install gtest gtest-devel gcov
 ```
 
 Build script provided creates executable in ./build directory
@@ -92,6 +93,17 @@ If multiple worker threads are used, work is divided based on order_id,
 in such a manner that if one order of given order_id is routed to a worker
 thread, every other order with the same order_id will end up with
 the same worker thread.
+
+# TESTING
+
+I have used following testing strategies to ensure quality of the program
+
+1. Unit Testing implemented using tool called gtest,
+    coverage is assessed using gcov. Every class is bundled with tests
+2. Tool called Valgrind is used to verify for lack of memory leaks
+    and bad memory accesses
+3. Performance is evaluated using tool called time
+4. Manual testing is performed to determine other areas for testing
 
 # PERFORMANCE
 

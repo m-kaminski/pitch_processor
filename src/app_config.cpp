@@ -43,6 +43,10 @@ namespace pitchstream
     }
     int app_config::parse_command_line(int argc, const char * const *argv)
     {
+        int thread_selections=0;
+        int io_selections=0;
+        int result_selections=0;
+
         std::stringstream applied;
         bool verbose = false;
         for (int i = 1; i != argc; ++i)
@@ -55,6 +59,7 @@ namespace pitchstream
             {
                 ep.reset(new pitchstream::execution_policy_single_threaded);
                 applied << "Configuring single threaded execution" << std::endl;
+                thread_selections++;
             }
             else if (argname == "-nr")
             {
@@ -67,6 +72,7 @@ namespace pitchstream
                     return (-1);
                 }
                 applied << "Configuring display of " << num_results << " results " << std::endl;
+                result_selections++;
             }
             else if (argname == "-mt")
             {
@@ -95,6 +101,7 @@ namespace pitchstream
                 }
                 applied << "Configuring " << threads << " threads\n";
                 ep.reset(new pitchstream::execution_policy_multi_threaded(threads));
+                thread_selections++;
             }
             else if (argname == "-aio")
             {
@@ -139,11 +146,13 @@ namespace pitchstream
                     bufsz *= 1024;
                     ioe.reset(new pitchstream::io_engine_aio(0, bufsz, inflight));
                 }
+                io_selections++;
             }
             else if (argname == "-ios")
             {
                 applied << "Configuring IOS" << std::endl;
                 ioe.reset(new pitchstream::io_engine_ios(std::cin));
+                io_selections++;
             }
             else if (argname == "-v")
             {
@@ -162,6 +171,13 @@ namespace pitchstream
                 return (-1);
             }
         };
+        if (thread_selections > 1 || io_selections > 1 || result_selections > 1) {
+                std::cerr << "Selected more than one of same option or a set of options\n"
+                             " that is mutually exclusive" 
+                            << std::endl;
+                print_help(argv[0]);
+                return (-1);
+        }
         if (verbose) {
             std::cout << applied.str();
         }

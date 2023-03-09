@@ -130,5 +130,28 @@ namespace pitchstream
             config.parse_command_line(args.size(), &args[0]);
             EXPECT_EQ(config.get_num_results(), 4);
         }
+
+        TEST_F(app_config_test, test_arguments_multiple_thread_options)
+        {
+            std::vector<const char*> args({"APPNAME", "-st", "-mt"});
+            app_config config;
+            EXPECT_NE(0, config.parse_command_line(args.size(), &args[0]));
+        }
+
+
+        TEST_F(app_config_test, test_arguments_multiple_io_options)
+        {
+            std::vector<const char*> args({"APPNAME", "-aio", "-aio=10"});
+            app_config config;
+            EXPECT_NE(0, config.parse_command_line(args.size(), &args[0]));
+        }
+
+        TEST_F(app_config_test, test_arguments_multiple_result_options)
+        {
+            std::vector<const char*> args({"APPNAME", "-nr=4", "-nr=10"});
+            app_config config;
+            EXPECT_NE(0, config.parse_command_line(args.size(), &args[0]));
+        }
+
     }
 }
