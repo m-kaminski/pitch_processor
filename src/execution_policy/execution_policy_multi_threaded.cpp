@@ -54,6 +54,9 @@ namespace pitchstream
 
     void execution_policy_multi_threaded::process_input_stage1(const char *begin, const char *end)
     {
+        if (end - begin < COMMON_ORDER_ID_OFFSET + COMMON_ORDER_ID_LENGTH) {
+            return; /* string too short, no order ID  - ignore silently */
+        }
 
         int thread_id =
             std::accumulate(begin + COMMON_ORDER_ID_OFFSET,
