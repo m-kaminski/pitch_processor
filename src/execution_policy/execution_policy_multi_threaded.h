@@ -21,7 +21,7 @@ namespace pitchstream
     public:
         execution_policy_multi_threaded(int _num_threads = 32) : 
         num_threads(_num_threads), 
-        multistring_length(1024 * 16),
+        multistring_length(1024),
         thread_data(_num_threads){}
         
         virtual void run();
@@ -43,7 +43,8 @@ namespace pitchstream
         std::vector<thread_status> thread_data;
 
         error_counter<std::atomic<std::uint64_t>> errors;
-
+        uint64_t lock_fail;
+        uint64_t lock_success;
 
         void process_input_stage1(const char *begin, const char *end);
 

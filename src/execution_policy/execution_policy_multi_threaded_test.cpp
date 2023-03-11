@@ -27,6 +27,17 @@ namespace pitchstream
             "FXP     320\n"
             "DIA     229\n"
             "BAC     210\n");
+        const std::string EXPECTED_OUTPUT_ALT(
+            "OIH    5000\n"
+            "SPY    2000\n"
+            "DRYS   1209\n"
+            "ZVZZT   577\n"
+            "AAPL    495\n"
+            "PTR     400\n" // ordering of symbols with same count can differ
+            "UYG     400\n"
+            "FXP     320\n"
+            "DIA     229\n"
+            "BAC     210\n");
         class execution_policy_multi_threaded_test : public ::testing::Test
         {
         };
@@ -64,7 +75,8 @@ namespace pitchstream
             std::cout.flush();
             std::string text = testing::internal::GetCapturedStdout();
 
-            EXPECT_EQ(text, EXPECTED_OUTPUT);
+            EXPECT_TRUE( text == EXPECTED_OUTPUT
+                        || text == EXPECTED_OUTPUT_ALT);
         }
         
         TEST_F(execution_policy_multi_threaded_test, error_handling)

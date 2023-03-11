@@ -39,9 +39,6 @@ int main(int argc, char **argv)
     ep->set_num_results(num_results);
     ep->run();
 
-    config.reset();
-    ep.reset(); // first destroy execution policy as it depends on IO engine running
-    ioe.reset();
 
     return 0;
 }

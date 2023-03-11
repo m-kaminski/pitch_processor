@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iterator>
 #include <cassert>
+#include <iomanip>
 
 #include "../pitch/summary_fotmatter.h"
 #include "../pitch/pitch_message.h"
@@ -18,6 +19,9 @@ namespace pitchstream
     {
         assert(thread_data.size() == num_threads);
         worker_thread wt;
+
+        int lock_fail = 0;
+        int lock_success = 0;
 
         for (int i = 0; i != num_threads; ++i)
             thread_data[i].pre_input.reserve(multistring_length + 100);
@@ -61,7 +65,12 @@ namespace pitchstream
 
         if (errors.has_errors())
             errors.print_errors();
-            
+
+        if (lock_fail * 1000 > (lock_success + lock_fail)) // if lock fail rate > 0.1%
+            std::cerr << "lock failure rate : " << std::fixed << std::setprecision(5)
+                      << double(100.0 * lock_fail) / double(lock_fail + lock_success)
+                      << "%. Consider increasing thread count to improve performance." 
+                      << std::endl;
     }
 
     void execution_policy_multi_threaded::process_input_stage1(const char *begin, const char *end)
@@ -72,24 +81,39 @@ namespace pitchstream
             return; /* string too short, no order ID  - ignore silently */
         }
 
-        int thread_id =
-            std::accumulate(begin + COMMON_ORDER_ID_OFFSET,
-                            begin + COMMON_ORDER_ID_OFFSET + COMMON_ORDER_ID_LENGTH,
-                            0) %
-            num_threads;
+        // calculate very simple hash based on order ID, just to make sure that any two
+        // messages with the same order ID will get routed to the same worker thread,
+        // whine maintaining ordering within order ID
+        uint32_t * order_id_uint = (uint32_t *)(begin + COMMON_ORDER_ID_OFFSET);
+        int thread_id = (order_id_uint[0] + order_id_uint[1] - order_id_uint[2])  %
+                        num_threads;
 
         thread_data[thread_id].pre_input.append(begin, end);
         thread_data[thread_id].pre_input += '\n';
 
         if (thread_data[thread_id].pre_input.size() > multistring_length)
         {
+            bool locked = false;
             {
-                std::unique_lock<std::mutex> lock(thread_data[thread_id].queue_mutex);
-
-                thread_data[thread_id].inputs.emplace_back(move(thread_data[thread_id].pre_input));
+                std::unique_lock<std::mutex> lock(thread_data[thread_id].queue_mutex, std::try_to_lock);
+                if (lock.owns_lock())
+                {
+                    locked = true;
+                    thread_data[thread_id].inputs.emplace_back(move(thread_data[thread_id].pre_input));
+                }
             }
-            thread_data[thread_id].mutex_condition.notify_one();
-            thread_data[thread_id].pre_input.reserve(multistring_length + 100);
+            if (locked)
+            {
+                lock_success++;
+                thread_data[thread_id].mutex_condition.notify_one();
+                thread_data[thread_id].pre_input.reserve(multistring_length + 100);
+                if (multistring_length < 256*1024)
+                    multistring_length *= 2;
+            }
+            else
+            {
+                lock_fail++;
+            }
         }
     }
 
@@ -158,7 +182,8 @@ namespace pitchstream
     execution_policy_multi_threaded::thread_status::~thread_status()
     {
         std::unique_lock<std::mutex> lock(queue_mutex);
-        if (!inputs.empty()) {
+        if (!inputs.empty())
+        {
             std::cerr << "Thread queue is not clean. This may be data corruption" << std::endl;
         }
     }
