@@ -136,20 +136,28 @@ their number is printed to standard output
 
 # PERFORMANCE
 
-I have generated sample file with 100,000,000 (that is 100 Million) lines of
+I have generated sample file with 1,000,000,000 (that is 1 Billion) lines of
 PITCH data, to run certain benchmarks on AMD Ryzen 9 5900X 12-core processor.
+
+Following command with various options was used to evaluate execution time:
+```
+time for i in `seq 10` ; do cat large_sample_3.6GB ; done |\
+  nice -10 ./build/pitch_processor -aio -mt=X
+```
 
 I have observed that usage of asynchronous IO (Linux AIO) and threads give
 certain boost in execution time, providing some numbers below:
 
 ```
-  \ threads:        1          3          5          9         17
+  \ threads:         1          3          5          9         17
 I/O method
-IOS          0m9.540s   0m6.034s   0m5.985s   0m6.068s   0m5.742s
+IOS          1m39.226s  0m41.325s  0m33.790s  0m38.680s  0m34.566s
 
-AIO (32k,2)  0m8.061s   0m4.040s   0m4.234s   0m4.000s   0m4.183s
+AIO (32k,2)  1m21.075s  0m54.013s   1m6.077s   1m2.318s  0m59.639s
 
-AIO (32k,8)  0m8.116s   0m4.028s   0m3.896s   0m4.118s   0m4.419s
+------------------- with forced thread affinity ------------------
+
+AIO (32k,2)        N/A  0m43.364s  0m38.522s  0m48.870s   1m0.690s
 ```
 (3,5,9 and 17 are total numbers of threads, corresponding to 2/4/8/16
 worker threads and one I/O thread)
@@ -157,6 +165,10 @@ worker threads and one I/O thread)
 As it can be observed, benefits of increasing number of working threads
 is diminishing quickly, as problem becomes strictly I/O bound rather than
 compute.
+
+Sticking each thread to distinct physical core doesn't provide benefit,
+opposite: it is apparent that leaving thread scheduling to the OS provides
+a benefit in cache locality.
 
 Note that to achieve correct results with multi-threading, distribution
 of work between worker threads cannot be random, and instead hash needs
