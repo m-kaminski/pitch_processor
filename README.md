@@ -1,7 +1,8 @@
 # PITCH
 
-Program takes stream of messages in PITCH format on standard input and 
-summarizes most frequently executed stocks on standard output.
+Program takes stream of messages in Cboe PITCH format (TCP depth of 
+book for Cboe exchanges) on standard input and summarizes most frequently 
+executed stocks on standard output.
 
 # BUILD
 
