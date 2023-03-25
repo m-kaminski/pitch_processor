@@ -151,24 +151,30 @@ certain boost in execution time, providing some numbers below:
 ```
   \ threads:         1          3          5          9         17
 I/O method
-IOS          1m39.226s  0m41.325s  0m33.790s  0m38.680s  0m34.566s
+IOS          1m39.226s  0m54.013s   1m6.077s   1m2.318s  0m59.639s
 
-AIO (32k,2)  1m21.075s  0m54.013s   1m6.077s   1m2.318s  0m59.639s
+AIO (32k,2)  1m21.075s  0m41.325s  0m33.790s  0m38.680s  0m34.566s
 
 ------------------- with forced thread affinity ------------------
 
-AIO (32k,2)        N/A  0m43.364s  0m38.522s  0m48.870s   1m0.690s
+AIO (32k,2)        N/A  0m40.574s  0m32.860s  0m33.767s  0m41.291s
 ```
 (3,5,9 and 17 are total numbers of threads, corresponding to 2/4/8/16
 worker threads and one I/O thread)
 
 As it can be observed, benefits of increasing number of working threads
-is diminishing quickly, as problem becomes strictly I/O bound rather than
-compute.
+is diminishing quickly, when increasing this number beyond 4, as problem 
+becomes strictly I/O bound rather than compute.
 
-Sticking each thread to distinct physical core doesn't provide benefit,
-opposite: it is apparent that leaving thread scheduling to the OS provides
-a benefit in cache locality.
+Sticking each thread to distinct physical does provide small benefit in
+overall runtime performance, but the gain is diminishing when number of
+working threads exceeds number of physical CPU cores, in which case threads
+start to compete for resources with main thread. This can be improved
+by CPU affinity arrangement function binding core 0 to main thread, and
+remaining cores split in round robin pattern accross other threads
+
+Overall usage of multiple threads and asynchronous I/O enables application
+to run 3 times as fast as when ran in single-threaded mode with I/O streams.
 
 Note that to achieve correct results with multi-threading, distribution
 of work between worker threads cannot be random, and instead hash needs
