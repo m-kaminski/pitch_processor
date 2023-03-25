@@ -141,8 +141,8 @@ their number is printed to standard output
 I have generated sample file with 100,000,000 (that is 100 Million) lines of
 PITCH data, to run certain benchmarks on AMD Ryzen 9 5900X 12-core processor.
 
-As a second set of test, I have piped 10 of this file to simulate 10 x more
-(1,000,000,000 - 1 Billionlines) input data
+As a second set of test data, I have piped 10 of this file to simulate 10 x more
+(1,000,000,000 - 1 Billion lines) input data.
 
 Following command with various options was used to evaluate execution time:
 ```
@@ -202,6 +202,11 @@ concurently in flight beyond 2 is questionable.
 
 Overall usage of multiple threads and asynchronous I/O enables application
 to run 3 times as fast as when ran in single-threaded mode with I/O streams.
+
+With processing of 36GB (10*3.6) of data in 32.8 seconds, I am achieving
+enough speed to saturate 40 gigabit/s link, which is 4 times the maximum
+bandwidth of data avaliable through Cboe market data stream (documented as
+1Gb/s or 10Gb/s).
 
 Note that to achieve correct results with multi-threading, distribution
 of work between worker threads cannot be random, and instead hash needs
