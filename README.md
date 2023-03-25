@@ -31,6 +31,7 @@ Build script provided creates executable in ./build directory
 ./build.sh
 ```
 
+### Minimalist build
 If you don't feel like installing CMake, gtest, or dealing with threads
 and asynchronous I/O, for your convenience there is second build script which
 generates simple minimalist build with all of these dependencies removed
@@ -141,10 +142,11 @@ their number is printed to standard output
 I have generated sample file with 100,000,000 (that is 100 Million) lines of
 PITCH data, to run certain benchmarks on AMD Ryzen 9 5900X 12-core processor.
 
-As a second set of test data, I have piped 10 of this file to simulate 10 x more
-(1,000,000,000 - 1 Billion lines) input data.
+As a second set of test data, I have piped 10 of this file to simulate 10 x
+more (1,000,000,000 - 1 Billion lines) input data.
 
 Following command with various options was used to evaluate execution time:
+
 ```
 time nice -10 ./build/pitch_processor -aio -mt=X < large_sample_3.6GB
 
@@ -155,7 +157,7 @@ time for i in `seq 10` ; do cat large_sample_3.6GB ; done |\
 I have observed that usage of asynchronous IO (Linux AIO) and threads give
 certain boost in execution time, providing some numbers below:
 
-Data for smaller set
+### Data for smaller set
 ```
   \ threads:         1          3          5          9         17
 I/O method
@@ -170,8 +172,7 @@ AIO (32k,8)   0m8.033s   0m4.192s   0m3.336s   0m4.104s   0m3.569s
 AIO (32k,2)        N/A   0m4.081s   0m3.208s   0m3.395s   0m4.177s
 ```
 
-Data for larger set
-
+### Data for larger set
 ```
   \ threads:         1          3          5          9         17
 I/O method
@@ -183,6 +184,7 @@ AIO (32k,2)  1m21.075s  0m41.325s  0m33.790s  0m38.680s  0m34.566s
 
 AIO (32k,2)        N/A  0m40.574s  0m32.860s  0m33.767s  0m41.291s
 ```
+
 (3,5,9 and 17 are total numbers of threads, corresponding to 2/4/8/16
 worker threads and one I/O thread)
 
@@ -200,6 +202,7 @@ remaining cores split in round robin pattern accross other threads
 Finally the benefit of increasing number of asynchronous I/O requests 
 concurently in flight beyond 2 is questionable.
 
+### Conclusions
 Overall usage of multiple threads and asynchronous I/O enables application
 to run 3 times as fast as when ran in single-threaded mode with I/O streams.
 
