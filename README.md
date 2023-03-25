@@ -138,17 +138,39 @@ their number is printed to standard output
 
 # PERFORMANCE
 
-I have generated sample file with 1,000,000,000 (that is 1 Billion) lines of
+I have generated sample file with 100,000,000 (that is 100 Million) lines of
 PITCH data, to run certain benchmarks on AMD Ryzen 9 5900X 12-core processor.
+
+As a second set of test, I have piped 10 of this file to simulate 10 x more
+(1,000,000,000 - 1 Billionlines) input data
 
 Following command with various options was used to evaluate execution time:
 ```
+time nice -10 ./build/pitch_processor -aio -mt=X < large_sample_3.6GB
+
 time for i in `seq 10` ; do cat large_sample_3.6GB ; done |\
   nice -10 ./build/pitch_processor -aio -mt=X
 ```
 
 I have observed that usage of asynchronous IO (Linux AIO) and threads give
 certain boost in execution time, providing some numbers below:
+
+Data for smaller set
+```
+  \ threads:         1          3          5          9         17
+I/O method
+IOS           0m9.724s   0m6.371s   0m6.923s   0m5.890s   0m6.124s
+
+AIO (32k,2)   0m8.146s   0m4.254s   0m3.587s   0m3.675s   0m3.329s
+
+AIO (32k,8)   0m8.033s   0m4.192s   0m3.336s   0m4.104s   0m3.569s
+
+------------------- with forced thread affinity ------------------
+
+AIO (32k,2)        N/A   0m4.081s   0m3.208s   0m3.395s   0m4.177s
+```
+
+Data for larger set
 
 ```
   \ threads:         1          3          5          9         17
@@ -174,6 +196,9 @@ working threads exceeds number of physical CPU cores, in which case threads
 start to compete for resources with main thread. This can be improved
 by CPU affinity arrangement function binding core 0 to main thread, and
 remaining cores split in round robin pattern accross other threads
+
+Finally the benefit of increasing number of asynchronous I/O requests 
+concurently in flight beyond 2 is questionable.
 
 Overall usage of multiple threads and asynchronous I/O enables application
 to run 3 times as fast as when ran in single-threaded mode with I/O streams.
