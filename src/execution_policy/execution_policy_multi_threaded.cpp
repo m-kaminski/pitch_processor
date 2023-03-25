@@ -14,7 +14,6 @@
 
 namespace pitchstream
 {
-
     void execution_policy_multi_threaded::run()
     {
         assert(thread_data.size() == num_threads);
@@ -23,13 +22,16 @@ namespace pitchstream
         int lock_fail = 0;
         int lock_success = 0;
 
-        for (int i = 0; i != num_threads; ++i)
-            thread_data[i].pre_input.reserve(multistring_length + 100);
+        for (int i = 0; i != num_threads; ++i) {
+            thread_data[i].pre_input_length_cap = 1024;
+            thread_data[i].pre_input.reserve(thread_data[i].pre_input_length_cap + 100);
+        }
 
         wt.set_run_function([&](worker_thread *w)
                             { this->process_input_stage2(w); });
 
-        wt.run_with_children(num_threads);
+        wt.run_with_children(num_threads, forced_affinity);
+
         ioe->process_input([&](const char *B, const char *E)
                            { this->process_input_stage1(B, E); });
 
@@ -91,7 +93,7 @@ namespace pitchstream
         thread_data[thread_id].pre_input.append(begin, end);
         thread_data[thread_id].pre_input += '\n';
 
-        if (thread_data[thread_id].pre_input.size() > multistring_length)
+        if (thread_data[thread_id].pre_input.size() > thread_data[thread_id].pre_input_length_cap)
         {
             bool locked = false;
             {
@@ -106,9 +108,9 @@ namespace pitchstream
             {
                 lock_success++;
                 thread_data[thread_id].mutex_condition.notify_one();
-                thread_data[thread_id].pre_input.reserve(multistring_length + 100);
-                if (multistring_length < 256*1024)
-                    multistring_length *= 2;
+                if (thread_data[thread_id].pre_input_length_cap < pre_input_max_length)
+                    thread_data[thread_id].pre_input_length_cap *= 2;
+                thread_data[thread_id].pre_input.reserve(thread_data[thread_id].pre_input_length_cap + 100);
             }
             else
             {

@@ -32,7 +32,41 @@ namespace pitchstream
             std::vector<const char*> args({"APPNAME", "-mt"});
             app_config config;
             config.parse_command_line(args.size(), &args[0]);
-            EXPECT_NE(dynamic_cast<execution_policy_multi_threaded*>(config.get_execution_policy().get()), nullptr);
+            EXPECT_NE(dynamic_cast<execution_policy_multi_threaded*>
+                    (config.get_execution_policy().get()), nullptr);
+        }
+
+        TEST_F(app_config_test, test_default_affinity_setting)
+        {
+            std::vector<const char*> args({"APPNAME", "-mt=43"});
+            app_config config;
+            config.parse_command_line(args.size(), &args[0]);
+            EXPECT_EQ(dynamic_cast<execution_policy_multi_threaded*>
+                        (config.get_execution_policy().get())->get_affinity(),
+                         false);
+        }
+        TEST_F(app_config_test, test_non_default_affinity_setting)
+        {
+            std::vector<const char*> args({"APPNAME", "-mt=43", "-a"});
+            app_config config;
+            config.parse_command_line(args.size(), &args[0]);
+            EXPECT_EQ(dynamic_cast<execution_policy_multi_threaded*>
+                        (config.get_execution_policy().get())->get_affinity(),
+                         true);
+        }
+
+        TEST_F(app_config_test, test_multiple_affinity_setting)
+        {
+            std::vector<const char*> args({"APPNAME", "-mt=43", "-a", "-a"});
+            app_config config;
+            EXPECT_NE(0, config.parse_command_line(args.size(), &args[0]));
+        }
+
+        TEST_F(app_config_test, test_wrong_affinity_setting)
+        {
+            std::vector<const char*> args({"APPNAME", "-st", "-a", "-a"});
+            app_config config;
+            EXPECT_NE(0, config.parse_command_line(args.size(), &args[0]));
         }
 
         TEST_F(app_config_test, test_arguments_thread_count)

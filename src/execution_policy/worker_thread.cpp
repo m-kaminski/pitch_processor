@@ -3,7 +3,10 @@
 #include <string>
 #include <fstream>
 #include <iterator>
-
+#ifdef __linux__ 
+#include <pthread.h>
+#include <unistd.h>
+#endif
 #include "worker_thread.h"
 
 namespace pitchstream
@@ -23,11 +26,11 @@ namespace pitchstream
     /***
      * create number of workers including self
      */
-    void worker_thread::run_with_children(int count)
+    void worker_thread::run_with_children(int count, bool affinity)
     {
         children.resize(count); // all children + self
 
-        run_with_children(count, children);
+        run_with_children(count, children, affinity);
     }
     
     void worker_thread::join_with_children()
@@ -49,12 +52,21 @@ namespace pitchstream
     {
     }
 
-    void worker_thread::run()
+    void worker_thread::run(bool affinity)
     {
         running = true;
         // run thread with given function
         p_thread_obj.reset(new std::thread([&]()
                                            { run_function(this); }));
+#ifdef __linux__ 
+    if (affinity) {
+        pthread_t thread_native = p_thread_obj->native_handle();
+        cpu_set_t cpuset;
+        CPU_ZERO(&cpuset);
+        CPU_SET(get_id() + 1, &cpuset);
+        pthread_setaffinity_np(thread_native, sizeof(cpuset), &cpuset);
+    }
+#endif      
     }
 
     void worker_thread::join(worker_thread *other)
@@ -63,14 +75,23 @@ namespace pitchstream
         other->p_thread_obj.reset();
     }
 
-    void worker_thread::run_with_children(int count, std::vector<p_t> &_worker_vector)
+    void worker_thread::run_with_children(int count, std::vector<p_t> &_worker_vector, bool affinity)
     {
         for (int i = 0; i != count; ++i)
         {
-            p_t t(new worker_thread(i, _worker_vector, run_function));
+            p_t t(new worker_thread(i, _worker_vector, run_function));     
             worker_vector[i] = t;
-            t->run();
+            t->run(affinity);
         }
+#ifdef __linux__ 
+    if (affinity) {
+        cpu_set_t cpuset;
+        CPU_ZERO(&cpuset);
+        CPU_SET(0, &cpuset);
+        pthread_setaffinity_np(pthread_self(), sizeof(cpuset), &cpuset);
+    }
+    nice(-1); // elevate priority of main thread slightly above worker threads
+#endif    
     }
 
     void worker_thread::join_with_children(int count, std::vector<p_t> &_worker_vector)

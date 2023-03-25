@@ -25,7 +25,7 @@ namespace pitchstream
         /***
          * create number of workers including self
          */
-        void run_with_children(int count);
+        void run_with_children(int count, bool affinity);
         
         void join_with_children();
 
@@ -65,11 +65,11 @@ namespace pitchstream
         worker_thread(int id, std::vector<p_t> &_worker_vector,
                       run_function_type _run_function);
 
-        void run();
+        void run(bool affinity);
 
         void join(worker_thread *other);
 
-        void run_with_children(int count, std::vector<p_t> &_worker_vector);
+        void run_with_children(int count, std::vector<p_t> &_worker_vector, bool affinity);
 
         void join_with_children(int count, std::vector<p_t> &_worker_vector);
     };

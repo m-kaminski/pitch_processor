@@ -21,7 +21,7 @@ namespace pitchstream
             std::mutex hello_mutex;
 
             worker_thread wt;
-            wt.run_with_children(9);
+            wt.run_with_children(9, false);
             wt.join_with_children();
         }
         
@@ -36,7 +36,7 @@ namespace pitchstream
                                 {           std::cout << "running inside thread id " << w->get_id() << "\n";
                 std::scoped_lock lock(hello_mutex);
                 hello_thread.push_back(w->get_id()); });
-            wt.run_with_children(10);
+            wt.run_with_children(10, true);
             wt.join_with_children();
             std::vector<int> expected(10);
             std::iota(expected.begin(), expected.end(), 0);
@@ -55,7 +55,7 @@ namespace pitchstream
             wt.set_run_function([&](worker_thread *w)
                                 {           std::cout << "running inside thread id " << w->get_id() << "\n";
                 hello_thread[w->get_id()] = w->get_id(); });
-            wt.run_with_children(num_threads);
+            wt.run_with_children(num_threads, false);
             wt.join_with_children();
             std::vector<int> expected(num_threads);
             std::iota(expected.begin(), expected.end(), 0);

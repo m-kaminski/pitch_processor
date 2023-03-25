@@ -31,6 +31,7 @@ namespace pitchstream
         "Program accepts following commandline options:\n"
 #ifndef MINIMALIST
         "-mt[=N] : multi-threaded execution. If =N given, specific number of threads\n"
+        "-a : force distinct thread affinity for working threads (only with -mt)\n"
 #endif
         "-st : single-threaded execution (default)\n"
 #ifndef MINIMALIST
@@ -58,6 +59,7 @@ namespace pitchstream
         int thread_selections = 0;
         int io_selections = 0;
         int result_selections = 0;
+        int affinity_selections = 0;
 
         std::stringstream applied;
         bool verbose = false;
@@ -86,14 +88,16 @@ namespace pitchstream
                 applied << "Configuring display of " << num_results << " results " << std::endl;
                 result_selections++;
             }
-            else if (argname == "-mt")
-            {
 #ifdef MINIMALIST
+            else if (argname == "-mt" || argname == "-aio" || argname == "-a") {
+
                 std::cerr << "Asynchronous I/O and multithreading disabled in MINIMALIST build"
                           << std::endl;
                 return (-1);
-
+            }
 #else
+            else if (argname == "-mt")
+            {                
                 int threads = 0;
                 if (argparms.empty())
                 {
@@ -121,6 +125,11 @@ namespace pitchstream
                 applied << "Configuring " << threads << " threads\n";
                 ep.reset(new pitchstream::execution_policy_multi_threaded(threads));
                 thread_selections++;
+            }
+            else if (argname == "-a")
+            {                
+                applied << "Configuring thread affinity\n";
+                affinity_selections++;     
             }
             else if (argname == "-aio")
             {
@@ -170,8 +179,8 @@ namespace pitchstream
                     ioe.reset(new pitchstream::io_engine_aio(0, bufsz, inflight));
                 }
                 io_selections++;
-#endif
             }
+#endif
             else if (argname == "-ios")
             {
                 applied << "Configuring IOS" << std::endl;
@@ -195,7 +204,19 @@ namespace pitchstream
                 return (-1);
             }
         };
-        if (thread_selections > 1 || io_selections > 1 || result_selections > 1)
+#ifndef MINIMALIST
+        if (affinity_selections) {
+            auto ep_mt = dynamic_cast<pitchstream::execution_policy_multi_threaded*>(ep.get());
+            if (ep_mt) {
+                ep_mt->set_affinity(true);
+            } else {
+                std::cerr << "Won't force affinity in single threaded application" << std::endl;
+                print_help(argv[0]);
+                return (-1);
+            }
+        }
+#endif
+        if (thread_selections > 1 || io_selections > 1 || result_selections > 1 || affinity_selections > 1)
         {
             std::cerr << "Selected more than one of same option or a set of options\n"
                          " that is mutually exclusive"
