@@ -65,6 +65,7 @@ executed symbols
 
 Program accepts following commandline options:
 -mt[=N] : multi-threaded execution. If =N given, specific number of threads
+-a : force distinct thread affinity for working threads (only with -mt)
 -st : single-threaded execution (default)
 -aio[=bufsz,inflight] : use Linux AIO for input. Can select buffer size
                         (kB) and maximum number of requests in flight (this
