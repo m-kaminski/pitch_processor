@@ -204,9 +204,9 @@ Overall usage of multiple threads and asynchronous I/O enables application
 to run 3 times as fast as when ran in single-threaded mode with I/O streams.
 
 With processing of 36GB (10*3.6) of data in 32.8 seconds, I am achieving
-enough speed to saturate 40 gigabit/s link, which is 4 times the maximum
+enough speed to saturate 9 gigabit/s link, which is close to the maximum
 bandwidth of data avaliable through Cboe market data stream (documented as
-1Gb/s or 10Gb/s).
+10Gb/s).
 
 Note that to achieve correct results with multi-threading, distribution
 of work between worker threads cannot be random, and instead hash needs
@@ -215,6 +215,10 @@ will be processed in the same worker thread as Add Order command for the
 same order. This allows skipping locks on hash table structure, and
 instead keeping distinct data structures between threads, and therefore
 achieve higher thruput.
+
+Further improvements of multi-threaded performance may be achieved via
+zero-copy architecture whereas buffers won't be copied between input and
+parsing.
 
 # CONTACT
 
